@@ -11,7 +11,7 @@ toml_config_loader = TomlConfigLoader()
 toml_config_data = toml_config_loader.toml_config_data
 
 
-def get_config_value(config_data, keys: list):
+def get_config_value(config_data, key_hierarchy: list):
     """
 
     :param config_data: Program configuration data - see config_template.toml
@@ -20,11 +20,11 @@ def get_config_value(config_data, keys: list):
     in the config_data dict.
     """
     try:
-        for key in keys:
+        for key in key_hierarchy:
             config_data = config_data[key]
         return config_data
     except KeyError:
-        error_log = f"Not able to find keys {keys} in config_data {config_data}"
+        error_log = f"Not able to find key hierarchy {key_hierarchy} in config_data {config_data}"
         logging.error(error_log)
         raise KeyError(error_log)
 
@@ -35,10 +35,10 @@ def create_petfinder_manager(config_data):
     :param config_data: Program configuration data - see config_template.toml
     :return: PetfinderApiManager class instance created from the provided config_data
     """
-    api_url = get_config_value(config_data=config_data, keys=['petfinder_api', 'api_url'])
-    token_url = get_config_value(config_data=config_data, keys=['petfinder_api', 'token_url'])
-    api_key = get_config_value(config_data=config_data, keys=['petfinder_api', 'api_key'])
-    secret_key = get_config_value(config_data=config_data, keys=['petfinder_api', 'secret_key'])
+    api_url = get_config_value(config_data=config_data, key_hierarchy=['petfinder_api', 'api_url'])
+    token_url = get_config_value(config_data=config_data, key_hierarchy=['petfinder_api', 'token_url'])
+    api_key = get_config_value(config_data=config_data, key_hierarchy=['petfinder_api', 'api_key'])
+    secret_key = get_config_value(config_data=config_data, key_hierarchy=['petfinder_api', 'secret_key'])
     petfinder_api_manager = PetfinderApiConnectionManager(api_url=api_url,
                                                           token_url=token_url,
                                                           api_key=api_key,
@@ -52,8 +52,8 @@ def create_news_manager(config_data):
     :param config_data: Program configuration data - see config_template.toml
     :return: NewsApiManager class instance created from the provided config_data
     """
-    api_url = config_data['news_api']['api_url']
-    api_key = config_data['news_api']['api_key']
+    api_url = get_config_value(config_data=config_data, key_hierarchy=['news_api', 'api_url'])
+    api_key = get_config_value(config_data=config_data, key_hierarchy=['news_api', 'api_key'])
     news_api_manager = NewsApiConnectionManager(api_url=api_url,
                                                 api_key=api_key)
     return news_api_manager
@@ -65,8 +65,8 @@ def lambda_handler(event, context):
 
     json_data = "get_json_data_here"
 
-    bucket_name = get_config_value(config_data=toml_config_data, keys=['aws_s3', 'bucket_name'])
-    bucket_key = get_config_value(config_data=toml_config_data, keys=['aws_s3', 'bucket_key'])
+    bucket_name = get_config_value(config_data=toml_config_data, key_hierarchy=['aws_s3', 'bucket_name'])
+    bucket_key = get_config_value(config_data=toml_config_data, key_hierarchy=['aws_s3', 'bucket_key'])
 
     s3_client = boto3.client('s3')
 
