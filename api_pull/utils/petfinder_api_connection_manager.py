@@ -1,7 +1,8 @@
 import requests
 import logging
 import time
-from api_pull.utils import petfinder_access_token
+from utils import petfinder_access_token
+from logging_messages import toml_logging_messages_loader
 
 
 class PetfinderApiConnectionManager:

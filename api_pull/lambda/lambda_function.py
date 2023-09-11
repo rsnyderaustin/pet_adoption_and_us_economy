@@ -68,7 +68,5 @@ def lambda_handler(event, context):
     bucket_name = get_config_value(config_data=toml_config_data, keys=['aws_s3', 'bucket_name'])
     bucket_key = get_config_value(config_data=toml_config_data, keys=['aws_s3', 'bucket_key'])
 
-    s3_client = boto3.client("s3")
-
-    try:
+    s3_client = boto3.client('s3')
 
