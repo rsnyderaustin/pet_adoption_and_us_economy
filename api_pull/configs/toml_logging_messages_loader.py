@@ -23,7 +23,7 @@ class TomlLoggingMessagesLoader:
         return cls._instance
 
     @staticmethod
-    def get_message(section_name, message_name, parameters=None, repeat=False):
+    def get_message(section, message_name, parameters=None, repeat=False):
         if not TomlLoggingMessagesLoader._instance:
             TomlLoggingMessagesLoader()
 
@@ -38,16 +38,16 @@ class TomlLoggingMessagesLoader:
             return err_msg
 
         try:
-            msg = log_msgs[section_name][message_name]
+            msg = log_msgs[section][message_name]
             if parameters:
                 msg.format(parameters)
         except KeyError:
             if repeat:
-                err_msg = "Error in logging messages handler, unrelated to passed error. Could not access logging " \
-                          "error message."
+                err_msg = "Error in logging messages handler, unrelated to passed error. Could not access internal " \
+                          "logging error message."
                 logging.error(err_msg)
                 return err_msg
-            err_msg = get_msg_func(section_name='messages_logging',
+            err_msg = get_msg_func(section='messages_logging',
                                    message_name='missing_message',
                                    repeat=True)
             logging.error(err_msg)

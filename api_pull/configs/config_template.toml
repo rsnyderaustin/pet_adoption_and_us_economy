@@ -4,7 +4,7 @@ token_url = "https://api.petfinder.com/v2/oauth2/token"
 api_key = "your API key here"
 secret_key = "your secret key here"
 
-[news_api]
+[econ_api]
 api_url = "https://newsapi.org/v2/"
 api_key = "your API key here"
 

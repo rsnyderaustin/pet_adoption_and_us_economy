@@ -1,8 +1,7 @@
 import os
 import tomli
 import logging
-from toml_logging_messages_loader import TomlLoggingMessagesLoader
-
+from ..configs.toml_logging_messages_loader import TomlLoggingMessagesLoader as MsgLoader
 
 # Singleton pattern for loading config file data across api_pull
 class TomlConfigLoader:
@@ -28,6 +27,20 @@ class TomlConfigLoader:
     def get_config(section_name, config_name):
         if not TomlConfigLoader._instance:
             TomlConfigLoader()
+
+        try:
+            configs = TomlConfigLoader._toml_config_data
+        except ValueError:
+            err_msg = MsgLoader.get_message(section='config_loader',
+                                            message_name='missing_config_data')
+            logging.error(err_msg)
+            return err_msg
+
+        try:
+
+
+
+
 
 
 
