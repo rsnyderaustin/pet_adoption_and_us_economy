@@ -1,14 +1,8 @@
 import requests
 import logging
 import time
-<<<<<<< HEAD:api_pull/utils/petfinder_api_connection_manager.py
-from utils import petfinder_access_token
-from logging_messages import toml_logging_messages_loader
-=======
 from ..utils import petfinder_access_token
 from ..logging_messages import toml_logging_messages_loader
->>>>>>> 6f744909132cd6cd11a6522a543692fbf8912422:pet_adoption_and_us_economy/api_pull/utils/petfinder_api_connection_manager.py
-
 
 class PetfinderApiConnectionManager:
 
