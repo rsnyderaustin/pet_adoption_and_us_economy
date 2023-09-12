@@ -59,7 +59,6 @@ def test_petfinder_animals_request_success(my_petfinder_api_connection_manager):
 
 
 def test_petfinder_organizations_request_success(my_petfinder_api_connection_manager):
-    mock_success =
     json_data = {"key1": "value1", "key2": "value2"}
     with requests_mock.Mocker() as mock:
         mock.get(my_petfinder_api_connection_manager.api_url, status_code=200, json=json_data)
@@ -71,6 +70,3 @@ def test_petfinder_organizations_request_success(my_petfinder_api_connection_man
     assert response_data == json_data, f"Expected JSON data {json_data}, received {response_data}"
 
 
-"""
-def test_news_api_connection(my_news_api_connection_manager):
-    assert my_news_api_connection_manager.test_connection() == 200"""
