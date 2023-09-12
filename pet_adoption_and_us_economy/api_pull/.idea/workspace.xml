@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="0a68d31b-cc51-4497-ae1a-dfd3f644c011" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../api_pull/.idea/api_pull.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/.idea/api_pull.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/configs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/configs/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/logging_messages/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/testing_modules/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/logging_messages/logging_messages.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/logging_messages/logging_messages.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/configs/logging_messages.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/logging_messages/toml_logging_messages_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/configs/toml_logging_messages_loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/test_utils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/test_utils/api_pull_logs.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/testing_modules/api_pull_logs.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/test_utils/test_module.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/testing_modules/test_module.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api_pull/utils/petfinder_api_connection_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/utils/petfinder_api_connection_manager.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectId" id="2VIbgGff0pizTajJS567TuZElxD" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showScratchesAndConsoles" value="false" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0a68d31b-cc51-4497-ae1a-dfd3f644c011" name="Changes" comment="" />
+      <created>1694526650441</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1694526650441</updated>
+      <workItem from="1694526651638" duration="769000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

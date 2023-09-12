@@ -4,7 +4,7 @@ import os
 import requests
 import requests_mock
 
-from api_pull.utils import petfinder_api_connection_manager, news_api_connection_manager
+from ..utils import petfinder_api_connection_manager, fred_api_connection_manager
 
 
 @pytest.fixture
@@ -29,10 +29,10 @@ def my_petfinder_api_connection_manager(toml_config_data):
 
 
 @pytest.fixture
-def my_news_api_connection_manager(toml_config_data):
-    api_url = toml_config_data['news_api']['api_url']
-    api_key = toml_config_data['news_api']['api_key']
-    return news_api_connection_manager.NewsApiConnectionManager(api_url=api_url,
+def my_fred_api_connection_manager(toml_config_data):
+    api_url = toml_config_data['fred_api']['api_url']
+    api_key = toml_config_data['fred_api']['api_key']
+    return fred_api_connection_manager.FredApiConnectionManager(api_url=api_url,
                                                                 api_key=api_key)
 
 
@@ -59,11 +59,7 @@ def test_petfinder_animals_request_success(my_petfinder_api_connection_manager):
 
 
 def test_petfinder_organizations_request_success(my_petfinder_api_connection_manager):
-    test_category = 'organizations'
-    test_parameters = {
-        'state': 'IA',
-        'limit': 20
-    }
+    mock_success =
     json_data = {"key1": "value1", "key2": "value2"}
     with requests_mock.Mocker() as mock:
         mock.get(my_petfinder_api_connection_manager.api_url, status_code=200, json=json_data)

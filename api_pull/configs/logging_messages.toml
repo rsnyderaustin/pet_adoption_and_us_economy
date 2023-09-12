@@ -1,0 +1,7 @@
+[petfinder_api]
+num-tries_less_than_max = "Petfinder API get_access_token failed on retry {num_retries} with status code: \
+{response.status_code} and details: {response_data.get('details')}"
+
+[messages_logging]
+missing_message = "No logging message found with section name {section_name}, message name {message_name}, \
+and parameters {parameters} in logging toml files."

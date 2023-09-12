@@ -4,6 +4,7 @@ import time
 from ..utils import petfinder_access_token
 from ..logging_messages import toml_logging_messages_loader
 
+
 class PetfinderApiConnectionManager:
 
     def __init__(self, api_url, token_url, api_key, secret_key):
