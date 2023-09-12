@@ -1,1 +1,3 @@
 import logging_config
+from toml_logging_messages_loader import TomlLoggingMessagesLoader as MsgLoader
+from toml_config_loader import TomlConfigLoader as ConfigLoader
