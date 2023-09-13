@@ -7,6 +7,9 @@ from ..configs.toml_logging_messages_loader import TomlLoggingMessagesLoader as 
 class MissingConfigDataError(Exception):
     pass
 
+class MissingConfigValueError(Exception):
+    pass
+
 # Singleton class for loading config file data across api_pull
 class TomlConfigLoader:
     _instance = None
@@ -33,7 +36,8 @@ class TomlConfigLoader:
     def get_config_data():
         if not hasattr(TomlConfigLoader, '_toml_config_data'):
             err_msg = MsgLoader.get_message(section='config_loader',
-                                            message_name='missing_config_data')
+                                            message_name='missing_config_data'
+                                            )
             logging.error(err_msg)
             raise MissingConfigDataError(err_msg)
 
@@ -42,9 +46,13 @@ class TomlConfigLoader:
         if not TomlConfigLoader._instance:
             TomlConfigLoader()
 
-        configs = TomlConfigLoader._get_config_data()
+        configs = TomlConfigLoader.get_config_data()
 
         try:
             config = configs[section_name][config_name]
         except KeyError:
-            err_msg = MsgLoader.get_message()
+            err_msg = MsgLoader.get_message(section='config_loader',
+                                            message_name='missing_config_variable'
+                                            )
+            logging.error(err_msg)
+            raise MissingConfigValueError(err_msg)
