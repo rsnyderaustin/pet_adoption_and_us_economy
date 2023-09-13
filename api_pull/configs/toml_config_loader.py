@@ -3,7 +3,11 @@ import tomli
 import logging
 from ..configs.toml_logging_messages_loader import TomlLoggingMessagesLoader as MsgLoader
 
-# Singleton pattern for loading config file data across api_pull
+
+class MissingConfigDataError(Exception):
+    pass
+
+# Singleton class for loading config file data across api_pull
 class TomlConfigLoader:
     _instance = None
     _toml_config_data = None
@@ -17,31 +21,30 @@ class TomlConfigLoader:
                 with open(config_file_path, "rb") as toml_file:
                     _toml_config_data = tomli.load(toml_file)
             else:
-                error_log = f"Failed to connect to toml config file at {config_file_path}. Ensure that you have created" \
-                            f"a config.toml file from the provided config_template.toml."
-                logging.error(error_log)
-                raise FileNotFoundError(error_log)
+                err_msg = MsgLoader.get_message(section='config_loader',
+                                                message_name='no_config_file',
+                                                parameters={'config_file_path': config_file_path}
+                                                )
+                logging.error(err_msg)
+                raise FileNotFoundError(err_msg)
         return cls._instance
+
+    @staticmethod
+    def get_config_data():
+        if not hasattr(TomlConfigLoader, '_toml_config_data'):
+            err_msg = MsgLoader.get_message(section='config_loader',
+                                            message_name='missing_config_data')
+            logging.error(err_msg)
+            raise MissingConfigDataError(err_msg)
 
     @staticmethod
     def get_config(section_name, config_name):
         if not TomlConfigLoader._instance:
             TomlConfigLoader()
 
-        try:
-            configs = TomlConfigLoader._toml_config_data
-        except ValueError:
-            err_msg = MsgLoader.get_message(section='config_loader',
-                                            message_name='missing_config_data')
-            logging.error(err_msg)
-            return err_msg
+        configs = TomlConfigLoader._get_config_data()
 
         try:
-
-
-
-
-
-
-
-
+            config = configs[section_name][config_name]
+        except KeyError:
+            err_msg = MsgLoader.get_message()
