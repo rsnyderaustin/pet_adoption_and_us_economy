@@ -1,3 +1,24 @@
 Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have createda config.toml file from the provided config_template.toml.
 Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have createda config.toml file from the provided config_template.toml.
 Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have createda config.toml file from the provided config_template.toml.
+Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have createda config.toml file from the provided config_template.toml.
+Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have createda config.toml file from the provided config_template.toml.
+Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have created a config.toml file from the provided config_template.toml.
+Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\logging_messages.toml. Ensure that you have created a config.toml file from the provided config_template.toml.
+No logging message found with section name {section_name}, message name {message_name},
+and parameters {parameters} in logging toml files.
+Error in logging messages handler, unrelated to passed error. One or more bad logging messages parameters.
+Tried to access missing config variable with section {section} and message name {config_name}.
+Tried to access missing config variable with section {section} and message name {config_name}.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section bad_section and message name bad_config.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.

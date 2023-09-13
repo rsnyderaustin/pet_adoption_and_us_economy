@@ -8,30 +8,43 @@ class MissingConfigFileError(Exception):
     pass
 
 
-class MissingConfigValueError(Exception):
+class MissingConfigFileValueError(Exception):
     pass
 
 
-# Singleton class for loading config file data across api_pull
 class TomlConfigLoader:
+    """
+        If logs_file_path is not provided, the program will access 'configs.toml' within the file folder.
+    """
     _instance = None
     _toml_config_data = None
 
-    def __new__(cls):
+    @staticmethod
+    def _generate_config_file_path():
+        parent_package_path = os.path.dirname(__file__)
+        config_file_path = os.path.join(parent_package_path, 'config.toml')
+        return config_file_path
+
+    @staticmethod
+    def _get_config_data(file_path):
+        try:
+            with open(file_path, "rb") as toml_file:
+                return tomli.load(toml_file)
+        except FileNotFoundError:
+            err_msg = MsgLoader.get_message(section='config_loader',
+                                            message_name='no_config_file',
+                                            parameters={'config_file_path': file_path}
+                                            )
+            logging.error(err_msg)
+            raise MissingConfigFileError(err_msg)
+
+    def __new__(cls, config_file_path=None):
         if cls._instance is None:
             cls._instance = super(TomlConfigLoader, cls).__new__(cls)
-            parent_package_path = os.path.dirname(os.path.dirname(__file__))
-            config_file_path = os.path.join(parent_package_path, 'config.toml')
-            try:
-                with open(config_file_path, "rb") as toml_file:
-                    _toml_config_data = tomli.load(toml_file)
-            except FileNotFoundError:
-                err_msg = MsgLoader.get_message(section='config_loader',
-                                                message_name='no_config_file',
-                                                parameters={'config_file_path': config_file_path}
-                                                )
-                logging.error(err_msg)
-                raise MissingConfigFileError(err_msg)
+            if not config_file_path:
+                config_file_path = cls._generate_config_file_path()
+
+            cls._toml_config_data = cls._get_config_data(config_file_path)
         return cls._instance
 
     @staticmethod
@@ -59,6 +72,6 @@ class TomlConfigLoader:
                                             }
                                             )
             logging.error(err_msg)
-            raise MissingConfigValueError(err_msg)
+            raise MissingConfigFileValueError(err_msg)
 
         return config

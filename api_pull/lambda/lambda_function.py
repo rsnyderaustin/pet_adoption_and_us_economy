@@ -14,7 +14,7 @@ toml_config_data = toml_config_loader.toml_config_data
 def get_config_value(config_data, key_hierarchy: list):
     """
 
-    :param config_data: Program configuration data - see config_template.toml
+    :param config_data: Program configuration data - see configs_template.toml
     :param keys: .toml keys order to access the requested config_data dict value
     :return: The value within config_data that is pointed to by the provided keys. Raises a KeyError if key(s) are not
     in the config_data dict.
@@ -32,7 +32,7 @@ def get_config_value(config_data, key_hierarchy: list):
 def create_petfinder_manager(config_data):
     """
 
-    :param config_data: Program configuration data - see config_template.toml
+    :param config_data: Program configuration data - see configs_template.toml
     :return: PetfinderApiManager class instance created from the provided config_data
     """
     api_url = get_config_value(config_data=config_data, key_hierarchy=['petfinder_api', 'api_url'])
@@ -49,7 +49,7 @@ def create_petfinder_manager(config_data):
 def create_news_manager(config_data):
     """
 
-    :param config_data: Program configuration data - see config_template.toml
+    :param config_data: Program configuration data - see configs_template.toml
     :return: NewsApiManager class instance created from the provided config_data
     """
     api_url = get_config_value(config_data=config_data, key_hierarchy=['news_api', 'api_url'])

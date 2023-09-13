@@ -5,7 +5,7 @@ import requests
 import requests_mock
 from ..configs import toml_config_loader
 
-from ..utils import petfinder_api_connection_manager, fred_api_connection_manager
+from ..utils import petfinder_api_connection_manager
 
 
 @pytest.fixture

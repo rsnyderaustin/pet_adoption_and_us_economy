@@ -1,12 +1,19 @@
 [petfinder_api]
-num-tries_less_than_max = "Petfinder API get_access_token failed on retry {num_retries} with status code: \
-{response.status_code} and details: {response_data.get('details')}"
+num-tries_less_than_max = """Petfinder API get_access_token failed on retry {num_retries} with status code:
+{response.status_code} and details: {response_data.get('details')}"""
 
 [messages_logging]
-missing_message = "No logging message found with section name {section_name}, message name {message_name}, \
-and parameters {parameters} in logging toml files."
+missing_message = """No logging message found with section name {section_name}, message name {message_name},
+and parameters {parameters} in logging toml files."""
+bad_parameters = """One or more parameters ({parameters}) provided to the logging messages loader do not have a
+corresponding string parameter."""
 
 [config_loader]
-no_config_file = "Failed to connect to toml config file at {config_file_path}. Ensure that you have created \
-a config.toml file from the provided config_template.toml."
+no_config_file = """Failed to connect to toml config file at {config_file_path}. Ensure that you have created
+a config.toml file from the provided config_template.toml."""
 missing_config_data = "Toml config data with section {section} and config variale name {config_name}."
+missing_config_variable = "Tried to access missing config variable with section '{section}' and message name '{config_name}'."
+
+[logs_loader]
+no_logs_file = """Failed to connect to toml logs file at {logs_file_path}. Ensure that you have created
+a logs.toml file."""
