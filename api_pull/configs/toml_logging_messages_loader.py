@@ -29,19 +29,11 @@ class TomlLoggingMessagesLoader:
 
         get_msg_func = TomlLoggingMessagesLoader.get_message
 
-        try:
-            log_msgs = TomlLoggingMessagesLoader._toml_logging_messages
-        except ValueError:
-            err_msg = "Error in logging messages handler, unrelated to passed error. " \
-                      "Attempted to access nonexistent toml logging messages variable."
-            logging.error(err_msg)
-            return err_msg
+        log_msgs = TomlLoggingMessagesLoader._toml_logging_messages
 
-        try:
-            msg = log_msgs[section][message_name]
-            if parameters:
-                msg.format(parameters)
-        except KeyError:
+        msg = log_msgs[section][message_name]
+        if parameters:
+            msg.format(parameters)
             if repeat:
                 err_msg = "Error in logging messages handler, unrelated to passed error. Could not access internal " \
                           "logging error message."

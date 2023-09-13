@@ -9,4 +9,4 @@ and parameters {parameters} in logging toml files."
 [config_loader]
 no_config_file = "Failed to connect to toml config file at {config_file_path}. Ensure that you have created \
 a config.toml file from the provided config_template.toml."
-missing_config_data = "No toml_config_data found in toml_config_loader when get_config was called."
+missing_config_data = "Toml config data with section {section} and config variale name {config_name}."
