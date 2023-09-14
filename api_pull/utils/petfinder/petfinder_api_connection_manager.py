@@ -53,7 +53,7 @@ class PetfinderApiConnectionManager:
         if self._petfinder_access_token and not self._petfinder_access_token.need_to_generate_new_token():
             return self._petfinder_access_token.get_access_token()
 
-        log = LogLoader.get_message(section='petfinder_api',
+        log = LogLoader.get_message(section='petfinder_api_manager',
                                     log_name='generating_new_token')
         logging.info(log)
 
@@ -76,7 +76,7 @@ class PetfinderApiConnectionManager:
                                           expiration=response_data.get("expires_in"))
                 return self._petfinder_access_token.get_access_token()
             elif num_retries < max_retries:
-                log = LogLoader.get_message(section='petfinder_api',
+                log = LogLoader.get_message(section='petfinder_api_manager',
                                             log_name='num_tries_less_than_max',
                                             parameters={
                                                 'num_retries': num_retries,
@@ -86,7 +86,7 @@ class PetfinderApiConnectionManager:
                 logging.error(log)
                 time.sleep(retry_delay)
             else:
-                log = LogLoader.get_message(section='petfinder_api',
+                log = LogLoader.get_message(section='petfinder_api_manager',
                                             log_name='max_retries_reached')
                 raise MaxPetfinderApiConnectionTriesError(log)
 
@@ -102,7 +102,7 @@ class PetfinderApiConnectionManager:
         """
         category = category.lower()
         if not self.valid_category(category):
-            log = LogLoader.get_message(section='petfinder_api',
+            log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='invalid_category',
                                         parameters={
                                             'category': category
@@ -130,7 +130,7 @@ class PetfinderApiConnectionManager:
             return {'Authorization': f'Bearer {access_token}'}
         except TypeError:
             passed_type = type(access_token)
-            log = LogLoader.get_message(section='petfinder_api',
+            log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='invalid_variable_type',
                                         parameters={
                                             'passed_type': passed_type
@@ -147,7 +147,7 @@ class PetfinderApiConnectionManager:
         """
         category = category.lower()
         if not self.valid_category(category):
-            log = LogLoader.get_message(section='petfinder_api',
+            log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='invalid_category',
                                         parameters={
                                             'category': category
@@ -155,7 +155,7 @@ class PetfinderApiConnectionManager:
             logging.error(log)
             raise ValueError(log)
         self._generate_access_token()
-        log = LogLoader.get_message(section='petfinder_api',
+        log = LogLoader.get_message(section='petfinder_api_manager',
                                     log_name='successful_token_generation')
         logging.info(log)
 
@@ -165,7 +165,7 @@ class PetfinderApiConnectionManager:
         url = self.api_url + category + '/'
         response = requests.get(headers=access_token_header, url=url, params=parameters)
         if response.status_code != 200:
-            log = LogLoader.get_message(section='petfinder_api',
+            log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='failed_request',
                                         parameters={
                                             'parameters': parameters,
@@ -173,7 +173,7 @@ class PetfinderApiConnectionManager:
                                         })
             logging.error(log)
         else:
-            log = LogLoader.get_message(section='petfinder_api',
+            log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='successful_request',
                                         parameters={
                                             'category': category,

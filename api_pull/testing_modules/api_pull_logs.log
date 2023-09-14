@@ -80,3 +80,15 @@ ERROR - 2023-09-14 15:50:26,512 - toml_logging_messages_loader.py - Function:get
     Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
 ERROR - 2023-09-14 15:50:26,513 - toml_logging_messages_loader.py - Function:get_message -
     Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 15:53:43,673 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 15:53:43,676 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 15:53:43,677 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 16:08:49,533 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 16:08:49,536 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 16:08:49,536 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.

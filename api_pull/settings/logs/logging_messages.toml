@@ -1,4 +1,4 @@
-[petfinder_api]
+[petfinder_api_manager]
 num_tries_less_than_max = """Petfinder API get_access_token failed on retry {num_retries} with status code:
 {status_code} and details: {details}"""
 generating_new_token = "Generating new Petfinder API access token."
@@ -11,6 +11,13 @@ successful_token_generation = "Petfinder access token generated successfully."
 failed_request = "Petfinder request with parameters {parameters} produced status code {status_code}"
 successful_request = """Petfinder API manager successfully generated response for \nCategory: {category}\n
 Parameters: {parameters}."""
+
+[petfinder_access_token]
+time_and_expiration_none = """PetfinderAccessToken need_to_generate_new_token method called when time of
+generation and expiration are None."""
+time_none = "PetfinderAccessToken need_to_generate_new_token method called when time of generation is None."
+cant_float = "Value '{number}' expected to be float or int but was type {type}"
+not_expected_type_string = "Expected type string for value '{value}' with type '{type}'."
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},
