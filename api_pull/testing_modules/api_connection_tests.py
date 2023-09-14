@@ -4,7 +4,7 @@ import os
 import requests
 import requests_mock
 
-from utils import petfinder_api_connection_manager
+from utils.petfinder import petfinder_api_connection_manager
 
 
 @pytest.fixture

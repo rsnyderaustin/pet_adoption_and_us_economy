@@ -8,7 +8,7 @@ formatter = logging.Formatter(log_format)
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format=log_format,
+    format='%(levelname)s - %(asctime)s - %(filename)s - Function:%(funcName)s - %(message)s',
     filename='news_and_dogs_api.log',
     filemode='a'
 )

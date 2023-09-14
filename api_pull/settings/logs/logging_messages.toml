@@ -1,6 +1,16 @@
 [petfinder_api]
-num-tries_less_than_max = """Petfinder API get_access_token failed on retry {num_retries} with status code:
-{response.status_code} and details: {response_data.get('details')}"""
+num_tries_less_than_max = """Petfinder API get_access_token failed on retry {num_retries} with status code:
+{status_code} and details: {details}"""
+generating_new_token = "Generating new Petfinder API access token."
+max_retries_reached = "Max number of Petfinder API token generator retries reached."
+invalid_category = "Category {category} is invalid. Must be 'animals' or 'organizations'"
+invalid_none_variable = "Variable {variable} passed as None when a value was expected."
+invalid_variable_type = """Invalid petfinder access token type passed into generate_access_token_header: {passed_type}.
+Expected string."""
+successful_token_generation = "Petfinder access token generated successfully."
+failed_request = "Petfinder request with parameters {parameters} produced status code {status_code}"
+successful_request = """Petfinder API manager successfully generated response for \nCategory: {category}\n
+Parameters: {parameters}."""
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},
