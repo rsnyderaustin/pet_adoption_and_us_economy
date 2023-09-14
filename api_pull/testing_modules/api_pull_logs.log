@@ -29,3 +29,42 @@ Tried to access missing config variable with section 'bad_section' and message n
 Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
 Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
 Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+Error in logging messages handler, unrelated to passed error. One or more bad logging messages parameters.
+Error in logging messages handler, unrelated to passed error. One or more bad logging messages parameters.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:27:31,632 - toml_config_loader.py - Function:get_config - Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:29:50,046 - toml_config_loader.py - Function:get_config - Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:30:35,446 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:30:41,620 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:50:19,297 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:50:43,268 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:51:15,312 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:51:18,938 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:51:40,281 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:51:40,283 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 14:53:00,594 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:53:00,596 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 14:53:13,370 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:53:16,087 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 14:54:04,782 - toml_config_loader.py - Function:get_config -
+    Tried to access missing config variable with section 'bad_section' and message name 'bad_config'.
+ERROR - 2023-09-14 14:54:04,785 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-14 14:54:04,786 - toml_logging_messages_loader.py - Function:get_message -
+    Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.

@@ -3,4 +3,4 @@ test_config = "Test config"
 
 [logging_test]
 test_log = "Test log"
-test_log_parameters = "Test log with parameter {parameter}"
+test_log_parameters = "Test log with parameters {parameter1} {parameter2}"

@@ -1,7 +1,7 @@
 import os
 import tomli
 import logging
-from .toml_logging_messages_loader import TomlLoggingMessagesLoader as MsgLoader
+from settings.logs.toml_logging_messages_loader import TomlLoggingMessagesLoader as MsgLoader
 
 
 class MissingConfigFileError(Exception):
@@ -14,7 +14,7 @@ class MissingConfigFileValueError(Exception):
 
 class TomlConfigLoader:
     """
-        If logs_file_path is not provided, the program will access 'configs.toml' within the file folder.
+        If logs_file_path is not provided, the program will access 'settings.toml' within the file folder.
     """
     _instance = None
     _toml_config_data = None
@@ -32,7 +32,7 @@ class TomlConfigLoader:
                 return tomli.load(toml_file)
         except FileNotFoundError:
             err_msg = MsgLoader.get_message(section='config_loader',
-                                            message_name='no_config_file',
+                                            log_name='no_config_file',
                                             parameters={'config_file_path': file_path}
                                             )
             logging.error(err_msg)
@@ -48,26 +48,31 @@ class TomlConfigLoader:
         return cls._instance
 
     @staticmethod
-    def get_config_data():
+    def reset():
+        TomlConfigLoader._instance = None
+        TomlConfigLoader._toml_config_data = None
+
+    @staticmethod
+    def get_config_data(configs_file_path=None):
         if not TomlConfigLoader._instance:
-            TomlConfigLoader()
+            TomlConfigLoader(configs_file_path)
 
         return TomlConfigLoader._toml_config_data
 
     @staticmethod
-    def get_config(section_name, config_name):
+    def get_config(section, config_name, configs_file_path=None):
         if not TomlConfigLoader._instance:
-            TomlConfigLoader()
+            TomlConfigLoader(configs_file_path)
 
         configs = TomlConfigLoader.get_config_data()
 
         try:
-            config = configs[section_name][config_name]
+            config = configs[section][config_name]
         except KeyError:
             err_msg = MsgLoader.get_message(section='config_loader',
-                                            message_name='missing_config_variable',
+                                            log_name='missing_config_variable',
                                             parameters={
-                                                'section': section_name,
+                                                'section': section,
                                                 'config_name': config_name
                                             }
                                             )

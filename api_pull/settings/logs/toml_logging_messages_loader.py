@@ -32,7 +32,7 @@ class TomlLoggingMessagesLoader:
                 return tomli.load(toml_file)
         except FileNotFoundError:
             err_msg = TomlLoggingMessagesLoader.get_message(section='logs_loader',
-                                                            message_name='no_config_file',
+                                                            log_name='no_config_file',
                                                             parameters={'logs_file_path': file_path}
                                                             )
             logging.error(err_msg)
@@ -40,7 +40,7 @@ class TomlLoggingMessagesLoader:
 
     def __new__(cls, logs_file_path=None):
         """
-            If logs_file_path is not provided, the program will access 'logging_messages.toml' within the file folder.
+            If logs_file_path is not provided, the program will access 'logs.toml' within the file folder.
         :param logs_file_path: The path to a .toml log messages file.
         """
         if cls._instance is None:
@@ -56,15 +56,20 @@ class TomlLoggingMessagesLoader:
         return cls._instance
 
     @staticmethod
-    def get_message(section, message_name, parameters=None, repeat=False):
-        if not TomlLoggingMessagesLoader._instance:
-            TomlLoggingMessagesLoader()
+    def reset():
+        TomlLoggingMessagesLoader._instance = None
+        TomlLoggingMessagesLoader._toml_logging_messages = None
 
-        get_msg_func = TomlLoggingMessagesLoader.get_message
+    @staticmethod
+    def get_message(section, log_name, logs_file_path=None, parameters=None, repeat=False):
+        if not TomlLoggingMessagesLoader._instance:
+            TomlLoggingMessagesLoader(logs_file_path)
+
+        get_log_func = TomlLoggingMessagesLoader.get_message
 
         log_msgs = TomlLoggingMessagesLoader._toml_logging_messages
         try:
-            msg = log_msgs[section][message_name]
+            msg = log_msgs[section][log_name]
         except KeyError:
                 # Manually log and raise error if logging_messages_loader called itself to prevent infinite recursion
                 if repeat:
@@ -73,11 +78,11 @@ class TomlLoggingMessagesLoader:
                     logging.error(err_msg)
                     raise MissingLogMessageError(err_msg)
 
-                err_msg = get_msg_func(section='messages_logging',
-                                       message_name='missing_message',
+                err_msg = get_log_func(section='messages_logging',
+                                       log_name='missing_message',
                                        parameters={
                                            'section_name': section,
-                                           'message_name': message_name
+                                           'message_name': log_name
                                        },
                                        repeat=True)
                 logging.error(err_msg)
@@ -92,8 +97,8 @@ class TomlLoggingMessagesLoader:
                 logging.error(err_msg)
                 raise BadLogParametersError(err_msg)
 
-            err_msg = get_msg_func(section='messages_logging',
-                                   message_name='bad_parameters',
+            err_msg = get_log_func(section='messages_logging',
+                                   log_name='bad_parameters',
                                    parameters={
                                        'parameters': parameters
                                    },

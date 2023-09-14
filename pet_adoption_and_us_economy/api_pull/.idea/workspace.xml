@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0a68d31b-cc51-4497-ae1a-dfd3f644c011" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../api_pull/configs/toml_logging_messages_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/configs/toml_logging_messages_loader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../api_pull/testing_modules/test_module.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../api_pull/testing_modules/test_module.py" afterDir="false" />
-    </list>
+    <list default="true" id="0a68d31b-cc51-4497-ae1a-dfd3f644c011" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,6 +13,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 3
+}]]></component>
   <component name="ProjectId" id="2VIbgGff0pizTajJS567TuZElxD" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -27,6 +27,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "master",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -43,6 +44,7 @@
       <option name="presentableId" value="Default" />
       <updated>1694526650441</updated>
       <workItem from="1694526651638" duration="769000" />
+      <workItem from="1694705754375" duration="17000" />
     </task>
     <servers />
   </component>
