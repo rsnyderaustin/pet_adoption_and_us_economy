@@ -39,9 +39,9 @@ class FredApiConnectionManager:
         }
 
         request_url = self.api_url + '/observations'
-        connection_attempts = 0
-        try:
-            response = requests.get(request_url, data=data)
-        except requests.ConnectionError:
+        response = requests.get(request_url, data=data)
+        response_json = response.json()
+        observations = response_json.get('observations')
+        date_values = [(observation['date'], observations['value']) for observation in observations]
 
 

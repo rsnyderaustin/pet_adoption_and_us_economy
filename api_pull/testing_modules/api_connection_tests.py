@@ -4,7 +4,7 @@ import os
 import requests
 import requests_mock
 
-from utils.petfinder import petfinder_api_connection_manager
+from utils import PfManager, FredManager
 
 
 @pytest.fixture
@@ -22,18 +22,18 @@ def my_petfinder_api_connection_manager(toml_config_data):
     token_url = toml_config_data['petfinder_api']['token_url']
     api_key = toml_config_data['petfinder_api']['api_key']
     secret_key = toml_config_data['petfinder_api']['secret_key']
-    return petfinder_api_connection_manager.PetfinderApiConnectionManager(api_url=api_url,
-                                                                          token_url=token_url,
-                                                                          api_key=api_key,
-                                                                          secret_key=secret_key)
+    return PfManager(api_url=api_url,
+                     token_url=token_url,
+                     api_key=api_key,
+                     secret_key=secret_key)
 
 
 @pytest.fixture
 def my_fred_api_connection_manager(toml_config_data):
     api_url = toml_config_data['fred_api']['api_url']
     api_key = toml_config_data['fred_api']['api_key']
-    return fred_api_connection_manager.FredApiConnectionManager(api_url=api_url,
-                                                                api_key=api_key)
+    return FredManager(api_url=api_url,
+                       api_key=api_key)
 
 
 def test_petfinder_token_generator(my_petfinder_api_connection_manager):
@@ -68,5 +68,3 @@ def test_petfinder_organizations_request_success(my_petfinder_api_connection_man
         except requests.exceptions.HTTPError as e:
             pytest.fail(f"HTTP Error raised with parameters {test_parameters}.")
     assert response_data == json_data, f"Expected JSON data {json_data}, received {response_data}"
-
-

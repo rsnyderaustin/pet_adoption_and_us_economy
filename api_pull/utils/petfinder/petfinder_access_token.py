@@ -12,7 +12,7 @@ class PetfinderAccessToken:
         self._time_of_generation = time_of_generation
         self._expiration = expiration
 
-    def need_to_generate_new_token(self):
+    def token_is_valid(self):
         if self._time_of_generation is None or self._expiration is None:
             log = LogLoader.get_message(section='petfinder_access_token',
                                         log_name='invalid_time_or_expiration',
@@ -24,7 +24,7 @@ class PetfinderAccessToken:
             raise AttributeError(log)
 
         current_time = time.time()
-        return (self._time_of_generation + self._expiration) <= current_time
+        return (self._time_of_generation + self._expiration) >= current_time
 
     @staticmethod
     def ensure_is_float(number):

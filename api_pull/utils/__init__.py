@@ -1,1 +1,2 @@
-from utils.petfinder.petfinder_api_connection_manager import PetfinderApiConnectionManager
+from utils.petfinder.petfinder_api_connection_manager import PetfinderApiConnectionManager as PfManager
+from utils.fred.fred_api_connection_manager import FredApiConnectionManager as FredManager
