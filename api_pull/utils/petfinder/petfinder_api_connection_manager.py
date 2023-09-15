@@ -2,9 +2,8 @@ import requests
 import logging
 import time
 
-from settings.configs import logging_config
-from settings import LogLoader
-from utils.petfinder import petfinder_access_token
+from api_pull.settings import ConfigLoader, LogLoader
+from api_pull.utils.petfinder import petfinder_access_token
 
 
 class MaxPetfinderApiConnectionTriesError(Exception):

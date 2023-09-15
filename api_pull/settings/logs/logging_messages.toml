@@ -19,6 +19,9 @@ time_none = "PetfinderAccessToken need_to_generate_new_token method called when 
 cant_float = "Value '{number}' expected to be float or int but was type {type}"
 not_expected_type_string = "Expected type string for value '{value}' with type '{type}'."
 
+[fred_api_manager]
+invalid_variable = "Invalid variable "
+
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},
 and parameters {parameters} in logging toml files."""
