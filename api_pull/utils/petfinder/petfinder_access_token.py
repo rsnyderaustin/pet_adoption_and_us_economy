@@ -40,7 +40,6 @@ class PetfinderAccessToken:
 
         return float(number)
 
-
     def update_access_token(self, new_token: str, time_of_generation: float, expiration: float):
         if not isinstance(new_token, str):
             log = LogLoader.get_message(section='petfinder_access_token',

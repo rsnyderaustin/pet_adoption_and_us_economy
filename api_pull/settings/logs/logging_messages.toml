@@ -20,7 +20,7 @@ cant_float = "Value '{number}' expected to be float or int but was type {type}"
 not_expected_type_string = "Expected type string for value '{value}' with type '{type}'."
 
 [fred_api_manager]
-invalid_variable = "Invalid variable "
+invalid_variable = "Invalid variable '{variable}' not one of valid variables '{valid_variables}'."
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},

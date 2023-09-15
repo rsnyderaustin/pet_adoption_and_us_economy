@@ -2,8 +2,8 @@ import requests
 import logging
 import time
 
-from api_pull.settings import ConfigLoader, LogLoader
-from api_pull.utils.petfinder import petfinder_access_token
+from settings import ConfigLoader, LogLoader
+from utils.petfinder import petfinder_access_token
 
 
 class MaxPetfinderApiConnectionTriesError(Exception):
@@ -44,7 +44,7 @@ class PetfinderApiConnectionManager:
                 time_of_generation=time_of_generation,
                 expiration=expiration)
 
-    def _generate_access_token(self):
+    def generate_access_token(self):
         """
 
         :return: Petfinder API access token.
