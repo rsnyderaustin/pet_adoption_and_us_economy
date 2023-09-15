@@ -1,5 +1,8 @@
-from settings import logging_config, ConfigLoader, LogLoader
+import logging
 import requests
+
+from settings import logging_config, ConfigLoader, LogLoader
+
 
 class FredApiConnectionManager:
 
@@ -17,16 +20,17 @@ class FredApiConnectionManager:
             'Interest Rate': 'DFF'
         }
 
-        valid_variables = variable_tags.keys()
-        if variable not in valid_variables:
+        try:
+            tag = variable_tags[variable]
+        except KeyError:
             log = LogLoader.get_message(section='fred_api_manager',
                                         log_name='invalid_variable',
                                         parameters={
                                             'variable': variable,
-                                            'valid_variables': valid_variables
+                                            'valid_variables': list(variable_tags.keys())
                                         })
-            raise ValueError(log)
-        tag = variable_tags[variable]
+            logging.error(log)
+            raise KeyError(log)
         return {'series_id': tag}
 
     def get_time_series_data(self, variable=None, tag=None):
