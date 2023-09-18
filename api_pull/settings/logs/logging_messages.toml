@@ -20,6 +20,7 @@ not_expected_type_string = "Expected type string for value '{value}' with type '
 
 [fred_api_manager]
 invalid_variable = "Invalid variable '{variable}' not one of valid variables '{valid_variables}'."
+no_vintagedates = "No key '{key}' found in {variable}\n{variable_value}."
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},

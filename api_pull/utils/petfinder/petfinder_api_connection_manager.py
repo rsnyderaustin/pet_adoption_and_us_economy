@@ -71,12 +71,12 @@ class PetfinderApiConnectionManager:
             'client_secret': self.secret_key
         }
 
-        generation_time = time.time()
         response = requests.post(url=self.token_url, data=data)
         if response.status_code == 200:
             log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='successful_token_generation')
             logging.info(log)
+            generation_time = time.time()
             response_data = response.json()
             self._handle_access_token(new_token=response_data.get("access_token"),
                                       time_of_generation=generation_time,
@@ -162,13 +162,17 @@ class PetfinderApiConnectionManager:
             logging.error(log)
             raise AttributeError(log)
 
-        if not self.valid_access_token_exists():
-            self.generate_access_token()
+        if self.valid_access_token_exists():
+            access_token = self._access_token.get_access_token()
+        else:
+            access_token = self.generate_access_token()
 
         access_token_header = {
-            'Authorization': f'Bearer {self._access_token.get_access_token()}'
+            'Authorization': f'Bearer {self._generate_access_token_header(access_token)}'
         }
-        url = self.api_url + category + '/'
+
+        url = self._generate_api_url(category=category)
+
         response = requests.get(headers=access_token_header, url=url, params=parameters)
         if response.status_code == 200:
             log = LogLoader.get_message(section='petfinder_api_manager',
@@ -186,4 +190,4 @@ class PetfinderApiConnectionManager:
                                             'status_code': response.status_code
                                         })
             logging.error(log)
-        return response.json
+        return response
