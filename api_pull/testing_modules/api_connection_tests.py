@@ -45,31 +45,31 @@ def fred_manager(toml_config_data):
 
 
 def test_petfinder_animals_request_success(pf_manager, pf_token_mock):
-    test_category = 'animals'
+    test_path = 'animals'
     test_parameters = {
         'type': 'dog',
         'limit': 20
     }
     json_data = {"key1": "value1", "key2": "value2"}
-    api_url = pf_manager._generate_api_url(category=test_category)
+    api_url = pf_manager._generate_api_url(path=test_path)
 
     pf_token_mock.get(api_url, status_code=200, json=json_data)
-    response = pf_manager.make_request(category=test_category,
+    response = pf_manager.make_request(path=test_path,
                                        parameters=test_parameters)
     response_json = response.json()
     assert response_json == json_data, f"Expected JSON data {json_data}, received {response_json}"
 
 
 def test_petfinder_organizations_request_success(pf_manager, pf_token_mock):
-    test_category = 'organizations'
+    test_path = 'organizations'
     test_parameters = {
         'state': 'IA'
     }
     json_data = {"key1": "value1", "key2": "value2"}
-    api_url = pf_manager._generate_api_url(category=test_category)
+    api_url = pf_manager._generate_api_url(path=test_path)
 
     pf_token_mock.get(api_url, status_code=200, json=json_data)
-    response = pf_manager.make_request(category=test_category,
+    response = pf_manager.make_request(path=test_path,
                                        parameters=test_parameters)
     response_json = response.json()
     assert response_json == json_data, f"Expected JSON data {json_data}, received {response_json}"
@@ -106,7 +106,7 @@ def test_get_last_date_ordered(fred_manager):
     }
 
     with requests_mock.Mocker() as mock:
-        api_url = fred_manager._generate_api_url(category='vintagedates')
+        api_url = fred_manager._generate_api_url(path_segments='vintagedates')
         mock.get(url=api_url,
                  json=json_data)
         last_date = fred_manager.get_last_updated_date(tag='UNRATE')
@@ -145,7 +145,7 @@ def test_get_last_date_unordered(fred_manager):
     }
 
     with requests_mock.Mocker() as mock:
-        api_url = fred_manager._generate_api_url(category='vintagedates')
+        api_url = fred_manager._generate_api_url(path_segments='vintagedates')
         mock.get(url=api_url,
                  json=json_data)
         last_date = fred_manager.get_last_updated_date(tag='UNRATE')

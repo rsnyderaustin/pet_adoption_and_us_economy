@@ -1,5 +1,7 @@
 from datetime import datetime
 import logging
+from typing import Union
+
 import requests
 import time
 from urllib.parse import urljoin
@@ -24,18 +26,23 @@ class FredApiConnectionManager:
         tag = tag.upper()
         return tag in FredApiConnectionManager.valid_tags
 
-    def _generate_api_url(self, category: str):
+    def _generate_api_url(self, path_segments: Union[list[str], str]):
         """
 
-        :param category:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
+        :param path_segments:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
         :return: Formatted Petfinder API URL to be used in an API request.
         """
-
-        formatted_api_url = urljoin(self.api_url, category)
-
+        path = "/".join(path_segments) if isinstance(path_segments, list) else path_segments
+        formatted_api_url = urljoin(self.api_url, path)
         return formatted_api_url
 
     def get_last_updated_date(self, tag) -> datetime:
+        """
+        Get the most recent date on which data for the specified FRED API tag was updated.
+
+        :param tag: The FRED API tag for which the last updated date is requested.
+        :return: A datetime object representing the most recent update date for the specified tag.
+        """
         if not self._is_valid_tag(tag=tag):
             log = LogLoader.get_log(section='fred_api_manager',
                                     log_name='invalid_tag',
@@ -43,7 +50,7 @@ class FredApiConnectionManager:
             logging.error(log)
             raise ValueError(log)
 
-        json_data = self.make_request(category='vintagedates',
+        json_data = self.make_request(path_segments='vintagedates',
                                       tag=tag)
         try:
             dates = json_data['vintage_dates']
@@ -74,10 +81,10 @@ class FredApiConnectionManager:
         last_date = max(datetime_dates)
         return last_date
 
-    def make_request(self, category: str, tag: str):
+    def make_request(self, path_segments: str, tag: str):
         """
 
-        :param category:
+        :param path_segments:
         :param variable:
         :param tag:
         :return: Json data from request to FRED API
@@ -93,7 +100,7 @@ class FredApiConnectionManager:
             'api_key': self.api_key
         }
 
-        request_url = self._generate_api_url(category=category)
+        request_url = self._generate_api_url(path_segments=path_segments)
 
         for tries in range(max_retries):
             if tries >= 1:

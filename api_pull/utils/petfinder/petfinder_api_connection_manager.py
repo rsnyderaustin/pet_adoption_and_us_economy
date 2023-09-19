@@ -124,26 +124,26 @@ class PetfinderApiConnectionManager:
         raise MaxPetfinderTokenGenerationTriesError(log)
 
     @staticmethod
-    def _valid_category(category):
-        return category.lower() in ['animals', 'organizations']
+    def _valid_path(path):
+        return path.lower() in ['animals', 'organizations']
 
-    def _generate_api_url(self, category: str):
+    def _generate_api_url(self, path: str):
         """
 
-        :param category:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
+        :param path:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
         :return: Formatted Petfinder API URL to be used in an API request.
         """
 
-        if not self._valid_category(category):
+        if not self._valid_path(path):
             log = LogLoader.get_log(section='petfinder_api_manager',
-                                    log_name='invalid_category',
+                                    log_name='invalid_path',
                                     parameters={
-                                            'category': category
+                                            'path': path
                                         })
             logging.error(log)
             raise ValueError(log)
 
-        formatted_api_url = urljoin(self.api_url, category)
+        formatted_api_url = urljoin(self.api_url, path)
 
         return formatted_api_url
 
@@ -156,10 +156,10 @@ class PetfinderApiConnectionManager:
         """
         return {'Authorization': f'Bearer {access_token}'}
 
-    def make_request(self, category: str, parameters: dict):
+    def make_request(self, path: str, parameters: dict):
         """
 
-        :param category: Which Petfinder API endpoint of 'animals' or 'organizations' to be requested.
+        :param path: Which Petfinder API endpoint of 'animals' or 'organizations' to be requested.
         :param parameters: The parameters specific for the request, formatted in a dict.
         :return: If successful, returns JSON request data. If not successful, raises an error.
         """
@@ -169,11 +169,11 @@ class PetfinderApiConnectionManager:
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
                                               config_name='api_connection_retry_delay')
 
-        if not self._valid_category(category):
+        if not self._valid_path(path):
             log = LogLoader.get_log(section='petfinder_api_manager',
-                                    log_name='invalid_category',
+                                    log_name='invalid_path',
                                     parameters={
-                                            'category': category
+                                            'path': path
                                         })
             logging.error(log)
             raise ValueError(log)
@@ -184,7 +184,7 @@ class PetfinderApiConnectionManager:
             'Authorization': f'Bearer {self._generate_access_token_header(access_token)}'
         }
 
-        url = self._generate_api_url(category=category)
+        url = self._generate_api_url(path=path)
 
         for tries in range(max_retries):
             if tries >= 1:
@@ -212,7 +212,7 @@ class PetfinderApiConnectionManager:
                 log = LogLoader.get_log(section='petfinder_api_manager',
                                         log_name='successful_request',
                                         parameters={
-                                            'category': category,
+                                            'path': path,
                                             'parameters': parameters
                                         })
                 logging.info(log)

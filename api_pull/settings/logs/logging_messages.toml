@@ -3,10 +3,10 @@ wrong_variable_type = "Expected type {expected_type} for variable '{variable_nam
 
 [petfinder_api_manager]
 generating_new_token = "Generating new Petfinder API access token."
-invalid_category = "Category {category} is invalid. Must be 'animals' or 'organizations'"
+invalid_path = "path {path} is invalid. Must be 'animals' or 'organizations'"
 successful_token_generation = "Petfinder access token generated successfully."
 failed_request = """Petfinder api connection with parameters {parameters} produced details '{details}'"""
-successful_request = """Petfinder API manager successfully generated response for \nCategory: {category}\n
+successful_request = """Petfinder API manager successfully generated response for \npath: {path}\n
 Parameters: {parameters}."""
 retrying_token_request = "Attempting token generation retry number {retries} for Petfinder API."
 retrying_request = "Attempting Petfinder API data request retry number {retries}."

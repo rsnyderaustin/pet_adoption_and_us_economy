@@ -174,3 +174,9 @@ ERROR - 2023-09-19 15:30:08,344 - fred_api_connection_manager.py - Function:_gen
     Category vintagedates is invalid. Must be 'animals' or 'organizations'
 ERROR - 2023-09-19 15:30:08,379 - fred_api_connection_manager.py - Function:_generate_api_url -
     Category vintagedates is invalid. Must be 'animals' or 'organizations'
+ERROR - 2023-09-19 16:01:28,762 - toml_logging_messages_loader.py - Function:get_log -
+    One or more parameters ({'path': 'animals', 'parameters': {'type': 'dog', 'limit': 20}}) provided to the logging messages loader do not have a
+corresponding string parameter.
+ERROR - 2023-09-19 16:01:28,804 - toml_logging_messages_loader.py - Function:get_log -
+    One or more parameters ({'path': 'organizations', 'parameters': {'state': 'IA'}}) provided to the logging messages loader do not have a
+corresponding string parameter.
