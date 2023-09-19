@@ -41,35 +41,35 @@ def test_get_config_fail():
 
 
 def test_get_message_success(log_loader):
-    message = settings.LogLoader.get_message(section='logging_test',
-                                             log_name='test_log',
-                                             logs_file_path=get_toml_path())
+    message = settings.LogLoader.get_log(section='logging_test',
+                                         log_name='test_log',
+                                         logs_file_path=get_toml_path())
     assert message == 'Test log'
 
 
 def test_get_message_success_parameters(log_loader):
-    message = settings.LogLoader.get_message(section='logging_test',
-                                             log_name='test_log_parameters',
-                                             parameters={
+    message = settings.LogLoader.get_log(section='logging_test',
+                                         log_name='test_log_parameters',
+                                         parameters={
                                                  'parameter1': 'test one',
                                                  'parameter2': 'test two'
                                              }
-                                             )
+                                         )
     assert message == 'Test log with parameters test one test two'
 
 
 def test_get_message_fail(log_loader):
     with pytest.raises(settings.logs.toml_logging_messages_loader.MissingLogMessageError):
-        message = settings.LogLoader.get_message(section='bad_section',
-                                                 log_name='bad_log_name')
+        message = settings.LogLoader.get_log(section='bad_section',
+                                             log_name='bad_log_name')
 
 
 def test_get_message_fail_parameters(log_loader):
     with pytest.raises(settings.logs.toml_logging_messages_loader.MissingLogMessageError):
-        message = settings.LogLoader.get_message(section='logging_test',
-                                                 log_name='test_log_parameters',
-                                                 parameters={
+        message = settings.LogLoader.get_log(section='logging_test',
+                                             log_name='test_log_parameters',
+                                             parameters={
                                                      'bad_parameter': 'bad',
                                                      'bad_parameter2': 'bad'
                                                  }
-                                                 )
+                                             )

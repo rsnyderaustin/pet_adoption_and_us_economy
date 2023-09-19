@@ -31,10 +31,10 @@ class TomlConfigLoader:
             with open(file_path, "rb") as toml_file:
                 return tomli.load(toml_file)
         except FileNotFoundError:
-            err_msg = MsgLoader.get_message(section='config_loader',
-                                            log_name='no_config_file',
-                                            parameters={'config_file_path': file_path}
-                                            )
+            err_msg = MsgLoader.get_log(section='config_loader',
+                                        log_name='no_config_file',
+                                        parameters={'config_file_path': file_path}
+                                        )
             logging.error(err_msg)
             raise MissingConfigFileError(err_msg)
 
@@ -69,13 +69,13 @@ class TomlConfigLoader:
         try:
             config = configs[section][config_name]
         except KeyError:
-            err_msg = MsgLoader.get_message(section='config_loader',
-                                            log_name='missing_config_variable',
-                                            parameters={
+            err_msg = MsgLoader.get_log(section='config_loader',
+                                        log_name='missing_config_variable',
+                                        parameters={
                                                 'section': section,
                                                 'config_name': config_name
                                             }
-                                            )
+                                        )
             logging.error(err_msg)
             raise MissingConfigFileValueError(err_msg)
 

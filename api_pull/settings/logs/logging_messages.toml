@@ -4,25 +4,21 @@ wrong_variable_type = "Expected type {expected_type} for variable '{variable_nam
 [petfinder_api_manager]
 generating_new_token = "Generating new Petfinder API access token."
 invalid_category = "Category {category} is invalid. Must be 'animals' or 'organizations'"
-invalid_none_variable = "Variable {variable} passed as None when a value was expected."
-invalid_variable_type = """Invalid petfinder access token type passed into generate_access_token_header: {passed_type}.
-Expected string."""
 successful_token_generation = "Petfinder access token generated successfully."
-failed_request = """Petfinder api connection with parameters {parameters} produced status code {status_code} with
-details '{details}'"""
+failed_request = """Petfinder api connection with parameters {parameters} produced details '{details}'"""
 successful_request = """Petfinder API manager successfully generated response for \nCategory: {category}\n
 Parameters: {parameters}."""
 retrying_token_request = "Attempting token generation retry number {retries} for Petfinder API."
-
-[petfinder_access_token]
-time_none = "PetfinderAccessToken need_to_generate_new_token method called when time of generation is None."
-cant_float = "Value '{number}' expected to be float or int but was type {type}"
-not_expected_type_string = "Expected type string for value '{value}' with type '{type}'."
+retrying_request = "Attempting Petfinder API data request retry number {retries}."
+failed_to_generate_token = "Failed to generate a Petfinder API access token after {num_retries} retries."
+failed_to_make_request = "Failed to make request to Petfinder API after {num_retries} retries."
+access_token_invalid_key = "Expected keys {keys_not_in_response} not found in access token JSON data:\n{json_data}"
 
 [fred_api_manager]
 invalid_variable = "Invalid variable '{variable}' not one of valid variables '{valid_variables}'."
 no_vintagedates = "No key '{key}' found in '{variable}'\nJson data: {json_data}."
 datetime_convert_error = "Error converting dates into datetime objects.\nDates:\n{dates}"
+invalid_tag = "Invalid tag '{tag}' not one of valid tags: {valid_tags}."
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},
@@ -34,7 +30,7 @@ corresponding string parameter."""
 no_config_file = """Failed to connect to toml config file at {config_file_path}. Ensure that you have created
 a config.toml file from the provided config_template.toml."""
 missing_config_data = "Toml config data with section {section} and config variale name {config_name}."
-missing_config_variable = "Tried to access missing config variable with section '{section}' and message name '{config_name}'."
+missing_config_variable = "Tried to access missing config variable with section '{section}' and config name '{config_name}'."
 
 [logs_loader]
 no_logs_file = """Failed to connect to toml logs file at {logs_file_path}. Ensure that you have created

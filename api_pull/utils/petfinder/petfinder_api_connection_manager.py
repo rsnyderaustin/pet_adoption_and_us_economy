@@ -13,7 +13,7 @@ class MaxPetfinderApiConnectionTriesError(Exception):
     pass
 
 
-class ApiException(Exception):
+class MaxPetfinderTokenGenerationTriesError(Exception):
     pass
 
 
@@ -60,53 +60,70 @@ class PetfinderApiConnectionManager:
         :return: Petfinder API access token.
         """
 
+        if self.valid_access_token_exists():
+            return self._access_token.get_access_token()
+
         max_retries = ConfigLoader.get_config(section='petfinder_api',
                                               config_name='api_connection_retries')
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
                                               config_name='api_connection_retry_delay')
+
+        data = {
+            'grant_type': 'client_credentials',
+            'client_id': self.api_key,
+            'client_secret': self.secret_key
+        }
+
+        log = LogLoader.get_log(section='petfinder_api_manager',
+                                log_name='generating_new_token')
+        logging.info(log)
+
         for tries in range(max_retries):
             if tries >= 1:
-                log = LogLoader.get_message(section='petfinder_api_manager',
-                                            log_name='retrying_token_request',
-                                            parameters={'retries': tries})
+                log = LogLoader.get_log(section='petfinder_api_manager',
+                                        log_name='retrying_token_request',
+                                        parameters={'retries': tries})
                 logging.info(log)
-
-            # If this isn't first try, then we know a valid access token does not exist
-            if tries == 0 and self.valid_access_token_exists():
-                return self._access_token.get_access_token()
-
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='generating_new_token')
-            logging.info(log)
-
-            data = {
-                'grant_type': 'client_credentials',
-                'client_id': self.api_key,
-                'client_secret': self.secret_key
-            }
+                time.sleep(retry_delay)
 
             try:
                 response = requests.post(url=self.token_url, data=data)
                 response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
+            except requests.exceptions.RequestException as e:
                 logging.error(e)
+                continue
 
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='successful_token_generation')
+            log = LogLoader.get_log(section='petfinder_api_manager',
+                                    log_name='successful_token_generation')
             logging.info(log)
             generation_time = time.time()
             try:
                 response_data = response.json()
+                self._handle_access_token(new_token=response_data["access_token"],
+                                          time_of_generation=generation_time,
+                                          expiration=response_data["expires_in"])
+                return self._access_token.get_access_token()
             except json.decoder.JSONDecodeError as json_error:
                 logging.error(json_error)
+                raise
+            except KeyError:
+                valid_keys = ['access_token', 'expires_in']
+                keys_not_in_response = [key for key in valid_keys if key not in response_data]
+                log = LogLoader.get_log(section='petfinder_api_manager',
+                                        log_name='access_token_invalid_key',
+                                        parameters={'keys_not_in_response': keys_not_in_response,
+                                                    'json_data': response_data})
+                logging.error(log)
 
-            self._handle_access_token(new_token=response_data.get("access_token"),
-                                      time_of_generation=generation_time,
-                                      expiration=response_data.get("expires_in"))
-            return self._access_token.get_access_token()
+        log = LogLoader.get_log(section='petfinder_api_manager',
+                                log_name='failed_to_generate_token',
+                                parameters={'num_retries': max_retries})
+        logging.error(log)
+        raise MaxPetfinderTokenGenerationTriesError(log)
 
     @staticmethod
     def _valid_category(category):
+        category = category.lower()
         return category in ['animals', 'organizations']
 
     def _generate_api_url(self, category: str):
@@ -115,23 +132,11 @@ class PetfinderApiConnectionManager:
         :param category:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
         :return: Formatted Petfinder API URL to be used in an API request.
         """
-        if not isinstance(category, str):
-            log = LogLoader.get_message(section='general_logs',
-                                        log_name='wrong_variable_type',
-                                        parameters={
-                                            'expected_type': 'string',
-                                            'variable_name': 'api url category',
-                                            'variable_type': type(category)
-                                        })
-            logging.error(log)
-            raise TypeError(log)
-
-        category = category.lower()
 
         if not self._valid_category(category):
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='invalid_category',
-                                        parameters={
+            log = LogLoader.get_log(section='petfinder_api_manager',
+                                    log_name='invalid_category',
+                                    parameters={
                                             'category': category
                                         })
             logging.error(log)
@@ -157,15 +162,21 @@ class PetfinderApiConnectionManager:
         :param parameters: The parameters specific for the request, formatted in a dict.
         :return: If successful, returns JSON request data. If not successful, raises an error.
         """
+
+        max_retries = ConfigLoader.get_config(section='petfinder_api',
+                                              config_name='api_connection_retries')
+        retry_delay = ConfigLoader.get_config(section='petfinder_api',
+                                              config_name='api_connection_retry_delay')
+
         category = category.lower()
         if not self._valid_category(category):
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='invalid_category',
-                                        parameters={
+            log = LogLoader.get_log(section='petfinder_api_manager',
+                                    log_name='invalid_category',
+                                    parameters={
                                             'category': category
                                         })
             logging.error(log)
-            raise AttributeError(log)
+            raise ValueError(log)
 
         if self.valid_access_token_exists():
             access_token = self._access_token.get_access_token()
@@ -178,21 +189,41 @@ class PetfinderApiConnectionManager:
 
         url = self._generate_api_url(category=category)
 
-        response = requests.get(headers=access_token_header, url=url, params=parameters)
-        if response.status_code == 200:
-            log = LogLoader.get_message(section='petfinder_api_manager',
+        for tries in range(max_retries):
+            if tries >= 1:
+                log = LogLoader.get_log(section='petfinder_api_manager',
+                                        log_name='retrying_request',
+                                        parameters={'retries': tries})
+                logging.info(log)
+                time.sleep(retry_delay)
+            try:
+                response = requests.get(headers=access_token_header,
+                                        url=url,
+                                        params=parameters)
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                log = LogLoader.get_log(section='petfinder_api_manager',
+                                        log_name='failed_request',
+                                        parameters={
+                                            'parameters': parameters,
+                                            'details': e
+                                        })
+                logging.error(log)
+                continue
+
+            try:
+                log = LogLoader.get_log(section='petfinder_api_manager',
                                         log_name='successful_request',
                                         parameters={
                                             'category': category,
                                             'parameters': parameters
                                         })
-            logging.info(log)
-        else:
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='failed_request',
-                                        parameters={
-                                            'parameters': parameters,
-                                            'status_code': response.status_code
-                                        })
-            logging.error(log)
-        return response
+                logging.info(log)
+                return response
+            except json.decoder.JSONDecodeError as json_error:
+                logging.error(json_error)
+
+        log = LogLoader.get_log(section='petfinder_api_manager',
+                                log_name='failed_to_make_request',
+                                parameters={'num_retries': max_retries})
+        logging.error(log)
