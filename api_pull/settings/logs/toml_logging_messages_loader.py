@@ -41,7 +41,7 @@ class TomlLoggingMessagesLoader:
     def __new__(cls, logs_file_path=None):
         """
             If logs_file_path is not provided, the program will access 'logs.toml' within the file folder.
-        :param logs_file_path: The path to a .toml log messages file.
+            :param logs_file_path: The path to a .toml log messages file.
         """
         if cls._instance is None:
             cls._instance = super(TomlLoggingMessagesLoader, cls).__new__(cls)
