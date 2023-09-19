@@ -37,7 +37,7 @@ class FredApiConnectionManager:
     def generate_request_url(self, category):
         return self.api_url + category + '/'
 
-    def get_last_updated_date(self, variable=None, tag=None):
+    def get_last_updated_date(self, variable=None, tag=None) -> datetime:
         if variable:
             tag = self.generate_variable_tag(variable=variable)
 
@@ -53,14 +53,25 @@ class FredApiConnectionManager:
                                         parameters={
                                             'key': 'vintagedates',
                                             'variable': 'json',
-                                            'variable_value': json_data
+                                            'json_data': json_data
                                         })
             logging.error(log)
             raise KeyError(log)
 
-        format = "%Y-%m-%d"
-        datetime_dates = [datetime.strptime(date_str, format) for date_str in dates]
-        last_date = max(datetime_dates).strftime(format)
+        if len(dates) == 0:
+            return None
+
+        date_format = "%Y-%m-%d"
+        try:
+            datetime_dates = [datetime.strptime(date_str, date_format) for date_str in dates]
+        except ValueError:
+            log = LogLoader.get_message(section='fred_api_manager',
+                                        log_name='datetime_convert_error',
+                                        parameters={'dates': dates})
+            logging.error(log)
+            raise ValueError(log)
+
+        last_date = max(datetime_dates)
         return last_date
 
     def get_fred_data(self, category, variable=None, tag=None):

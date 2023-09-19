@@ -86,7 +86,7 @@ class TomlLoggingMessagesLoader:
                                        },
                                        repeat=True)
                 logging.error(err_msg)
-                raise MissingLogMessageError(err_msg)
+                return 'Missing key error'
         try:
             if parameters:
                 msg = msg.format(**parameters)

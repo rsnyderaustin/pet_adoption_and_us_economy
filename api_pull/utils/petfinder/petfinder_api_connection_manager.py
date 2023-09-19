@@ -1,6 +1,9 @@
+import json.decoder
+
 import requests
 import logging
 import time
+from urllib.parse import urljoin
 
 from settings import ConfigLoader, LogLoader
 from utils.petfinder import petfinder_access_token
@@ -49,65 +52,82 @@ class PetfinderApiConnectionManager:
                 expiration=expiration)
 
     def valid_access_token_exists(self):
-        if self._access_token and self._access_token.token_is_valid():
-            return True
-        return False
+        return self._access_token and self._access_token.token_is_valid()
 
     def generate_access_token(self):
         """
 
         :return: Petfinder API access token.
         """
-        if self.valid_access_token_exists():
-            return self._access_token.get_access_token()
 
-        log = LogLoader.get_message(section='petfinder_api_manager',
-                                    log_name='generating_new_token')
-        logging.info(log)
+        max_retries = ConfigLoader.get_config(section='petfinder_api',
+                                              config_name='api_connection_retries')
+        retry_delay = ConfigLoader.get_config(section='petfinder_api',
+                                              config_name='api_connection_retry_delay')
+        for tries in range(max_retries):
+            if tries >= 1:
+                log = LogLoader.get_message(section='petfinder_api_manager',
+                                            log_name='retrying_token_request',
+                                            parameters={'retries': tries})
+                logging.info(log)
 
-        data = {
-            'grant_type': 'client_credentials',
-            'client_id': self.api_key,
-            'client_secret': self.secret_key
-        }
+            # If this isn't first try, then we know a valid access token does not exist
+            if tries == 0 and self.valid_access_token_exists():
+                return self._access_token.get_access_token()
 
-        response = requests.post(url=self.token_url, data=data)
-        if response.status_code == 200:
+            log = LogLoader.get_message(section='petfinder_api_manager',
+                                        log_name='generating_new_token')
+            logging.info(log)
+
+            data = {
+                'grant_type': 'client_credentials',
+                'client_id': self.api_key,
+                'client_secret': self.secret_key
+            }
+
+            try:
+                response = requests.post(url=self.token_url, data=data)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                logging.error(e)
+
             log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='successful_token_generation')
             logging.info(log)
             generation_time = time.time()
-            response_data = response.json()
+            try:
+                response_data = response.json()
+            except json.decoder.JSONDecodeError as json_error:
+                logging.error(json_error)
+
             self._handle_access_token(new_token=response_data.get("access_token"),
                                       time_of_generation=generation_time,
                                       expiration=response_data.get("expires_in"))
             return self._access_token.get_access_token()
-        else:
-            error_data = response.json()
-            error_details = error_data.get("detail")
-
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='failed_request',
-                                        parameters={
-                                            'parameters': data,
-                                            'status_code': response.status_code,
-                                            'details': error_details
-                                        })
-
-            logging.error(log)
-            raise ApiException(log)
 
     @staticmethod
     def _valid_category(category):
         return category in ['animals', 'organizations']
 
-    def _generate_api_url(self, category):
+    def _generate_api_url(self, category: str):
         """
 
         :param category:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
         :return: Formatted Petfinder API URL to be used in an API request.
         """
+        if not isinstance(category, str):
+            log = LogLoader.get_message(section='general_logs',
+                                        log_name='wrong_variable_type',
+                                        parameters={
+                                            'expected_type': 'string',
+                                            'variable_name': 'api url category',
+                                            'variable_type': type(category)
+                                        })
+            logging.error(log)
+            raise TypeError(log)
+
         category = category.lower()
+
         if not self._valid_category(category):
             log = LogLoader.get_message(section='petfinder_api_manager',
                                         log_name='invalid_category',
@@ -116,34 +136,19 @@ class PetfinderApiConnectionManager:
                                         })
             logging.error(log)
             raise ValueError(log)
-        return self.api_url + category + '/'
+
+        formatted_api_url = urljoin(self.api_url, category)
+
+        return formatted_api_url
 
     @staticmethod
-    def _generate_access_token_header(access_token):
+    def _generate_access_token_header(access_token: str):
         """
 
         :param access_token: Previously generated Petfinder API access token.
         :return: Access token header formatted for Petfinder API request.
         """
-        if access_token is None:
-            log = LogLoader.get_message(section='pefinder_api',
-                                        log_name='invalid_none_variable',
-                                        parameters={
-                                            'variable': 'access_token'
-                                        })
-            logging.error(log)
-            raise ValueError(log)
-        try:
-            return {'Authorization': f'Bearer {access_token}'}
-        except TypeError:
-            passed_type = type(access_token)
-            log = LogLoader.get_message(section='petfinder_api_manager',
-                                        log_name='invalid_variable_type',
-                                        parameters={
-                                            'passed_type': passed_type
-                                        })
-            logging.error(log)
-            raise TypeError(log)
+        return {'Authorization': f'Bearer {access_token}'}
 
     def make_request(self, category: str, parameters: dict):
         """

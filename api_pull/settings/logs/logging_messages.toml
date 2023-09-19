@@ -1,3 +1,6 @@
+[general_logs]
+wrong_variable_type = "Expected type {expected_type} for variable '{variable_name}', but got {variable_type}."
+
 [petfinder_api_manager]
 generating_new_token = "Generating new Petfinder API access token."
 invalid_category = "Category {category} is invalid. Must be 'animals' or 'organizations'"
@@ -5,22 +8,21 @@ invalid_none_variable = "Variable {variable} passed as None when a value was exp
 invalid_variable_type = """Invalid petfinder access token type passed into generate_access_token_header: {passed_type}.
 Expected string."""
 successful_token_generation = "Petfinder access token generated successfully."
-failed_connection = """Petfinder api connection with parameters {parameters} produced status code {status_code} with
-details {details}"""
+failed_request = """Petfinder api connection with parameters {parameters} produced status code {status_code} with
+details '{details}'"""
 successful_request = """Petfinder API manager successfully generated response for \nCategory: {category}\n
 Parameters: {parameters}."""
-no_access_token = ""
+retrying_token_request = "Attempting token generation retry number {retries} for Petfinder API."
 
 [petfinder_access_token]
-time_and_expiration_none = """PetfinderAccessToken need_to_generate_new_token method called when time of
-generation and expiration are None."""
 time_none = "PetfinderAccessToken need_to_generate_new_token method called when time of generation is None."
 cant_float = "Value '{number}' expected to be float or int but was type {type}"
 not_expected_type_string = "Expected type string for value '{value}' with type '{type}'."
 
 [fred_api_manager]
 invalid_variable = "Invalid variable '{variable}' not one of valid variables '{valid_variables}'."
-no_vintagedates = "No key '{key}' found in {variable}\n{variable_value}."
+no_vintagedates = "No key '{key}' found in '{variable}'\nJson data: {json_data}."
+datetime_convert_error = "Error converting dates into datetime objects.\nDates:\n{dates}"
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},
