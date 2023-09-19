@@ -104,3 +104,28 @@ ERROR - 2023-09-18 13:13:46,860 - toml_logging_messages_loader.py - Function:get
     Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
 ERROR - 2023-09-18 13:13:46,861 - toml_logging_messages_loader.py - Function:get_message -
     Error in logging messages handler, unrelated to passed error. Could not access internal logging error message.
+ERROR - 2023-09-19 14:40:16,349 - toml_config_loader.py - Function:_get_config_data -
+    Failed to connect to toml config file at C:\Users\austisnyder\Downloads\GitHub\pet_adoption_and_us_economy\api_pull\settings\configs\config.toml. Ensure that you have created
+a config.toml file from the provided config_template.toml.
+ERROR - 2023-09-19 14:41:34,813 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 14:41:35,815 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 14:41:36,817 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 14:41:36,817 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Failed to generate a Petfinder API access token after 3 retries.
+ERROR - 2023-09-19 14:41:36,866 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 14:41:37,868 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 14:41:38,870 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 14:41:38,870 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Failed to generate a Petfinder API access token after 3 retries.

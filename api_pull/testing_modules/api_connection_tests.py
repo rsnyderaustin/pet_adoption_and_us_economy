@@ -10,7 +10,7 @@ from utils import PfManager, FredManager
 @pytest.fixture
 def toml_config_data():
     package_path = os.path.dirname(os.path.dirname(__file__))
-    config_file_path = os.path.join(package_path, 'settings\configs\configs.toml')
+    config_file_path = os.path.join(package_path, 'settings\configs\config.toml')
     with open(config_file_path, "rb") as toml_file:
         config_data = tomli.load(toml_file)
         return config_data
@@ -106,7 +106,7 @@ def test_get_last_date_ordered(fred_manager):
     }
 
     with requests_mock.Mocker() as mock:
-        api_url = fred_manager.generate_request_url(category='vintagedates')
+        api_url = fred_manager._generate_api_url()(category='vintagedates')
         mock.get(url=api_url,
                  json=json_data)
         last_date = fred_manager.get_last_updated_date(tag='UNRATE')
