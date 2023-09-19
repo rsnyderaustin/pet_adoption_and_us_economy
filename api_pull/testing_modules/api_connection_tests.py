@@ -31,7 +31,8 @@ def pf_manager(toml_config_data):
 @pytest.fixture
 def pf_token_mock():
     with requests_mock.mock() as m:
-        m.post('https://api.petfinder.com/v2/oauth2/token', status_code=200, json={'access_token': '12345'})
+        m.post('https://api.petfinder.com/v2/oauth2/token', status_code=200, json={'access_token': '12345',
+                                                                                   'expires_in': 3600})
         yield m
 
 
@@ -68,7 +69,6 @@ def test_petfinder_organizations_request_success(pf_manager, pf_token_mock):
     api_url = pf_manager._generate_api_url(category=test_category)
 
     pf_token_mock.get(api_url, status_code=200, json=json_data)
-    pf_token_mock.post(url='https://api.petfinder.com/v2/oauth2/token', status_code=200, json={'access_token': '12345'})
     response = pf_manager.make_request(category=test_category,
                                        parameters=test_parameters)
     response_json = response.json()
@@ -106,12 +106,12 @@ def test_get_last_date_ordered(fred_manager):
     }
 
     with requests_mock.Mocker() as mock:
-        api_url = fred_manager._generate_api_url()(category='vintagedates')
+        api_url = fred_manager._generate_api_url(category='vintagedates')
         mock.get(url=api_url,
                  json=json_data)
         last_date = fred_manager.get_last_updated_date(tag='UNRATE')
-
-        assert last_date == "1966-01-13"
+        last_date_str = last_date.strftime('%Y-%m-%d')
+        assert last_date_str == "1966-01-13"
 
 
 def test_get_last_date_unordered(fred_manager):
@@ -145,9 +145,9 @@ def test_get_last_date_unordered(fred_manager):
     }
 
     with requests_mock.Mocker() as mock:
-        api_url = fred_manager.generate_request_url(category='vintagedates')
+        api_url = fred_manager._generate_api_url(category='vintagedates')
         mock.get(url=api_url,
                  json=json_data)
         last_date = fred_manager.get_last_updated_date(tag='UNRATE')
-
-        assert last_date == "1966-01-13"
+        last_date_str = last_date.strftime('%Y-%m-%d')
+        assert last_date_str == "1966-01-13"

@@ -129,3 +129,48 @@ ERROR - 2023-09-19 14:41:38,870 - petfinder_api_connection_manager.py - Function
 {'access_token': '12345'}
 ERROR - 2023-09-19 14:41:38,870 - petfinder_api_connection_manager.py - Function:generate_access_token -
     Failed to generate a Petfinder API access token after 3 retries.
+ERROR - 2023-09-19 15:25:51,468 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:25:52,470 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:25:53,471 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:25:53,471 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Failed to generate a Petfinder API access token after 3 retries.
+ERROR - 2023-09-19 15:27:22,511 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:27:23,511 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:27:24,514 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:27:24,514 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Failed to generate a Petfinder API access token after 3 retries.
+ERROR - 2023-09-19 15:28:13,189 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:28:14,194 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:28:15,199 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:28:15,199 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Failed to generate a Petfinder API access token after 3 retries.
+ERROR - 2023-09-19 15:28:44,385 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:28:46,861 - petfinder_api_connection_manager.py - Function:generate_access_token -
+    Expected keys ['expires_in'] not found in access token JSON data:
+{'access_token': '12345'}
+ERROR - 2023-09-19 15:29:50,336 - fred_api_connection_manager.py - Function:_generate_api_url -
+    Category vintagedates is invalid. Must be 'animals' or 'organizations'
+ERROR - 2023-09-19 15:30:08,344 - fred_api_connection_manager.py - Function:_generate_api_url -
+    Category vintagedates is invalid. Must be 'animals' or 'organizations'
+ERROR - 2023-09-19 15:30:08,379 - fred_api_connection_manager.py - Function:_generate_api_url -
+    Category vintagedates is invalid. Must be 'animals' or 'organizations'

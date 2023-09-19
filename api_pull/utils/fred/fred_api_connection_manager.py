@@ -24,26 +24,12 @@ class FredApiConnectionManager:
         tag = tag.upper()
         return tag in FredApiConnectionManager.valid_tags
 
-    @staticmethod
-    def _is_valid_category(category: str):
-        category = category.lower()
-        return category in ['category', 'releases', 'series', 'sources', 'tags']
-
     def _generate_api_url(self, category: str):
         """
 
         :param category:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
         :return: Formatted Petfinder API URL to be used in an API request.
         """
-
-        if not self._is_valid_category(category):
-            log = LogLoader.get_log(section='petfinder_api_manager',
-                                    log_name='invalid_category',
-                                    parameters={
-                                        'category': category
-                                    })
-            logging.error(log)
-            raise ValueError(log)
 
         formatted_api_url = urljoin(self.api_url, category)
 
@@ -57,10 +43,8 @@ class FredApiConnectionManager:
             logging.error(log)
             raise ValueError(log)
 
-        response = self.make_request(category='vintagedates',
-                                     tag=tag)
-
-        json_data = response.json()
+        json_data = self.make_request(category='vintagedates',
+                                      tag=tag)
         try:
             dates = json_data['vintage_dates']
         except KeyError:
@@ -111,7 +95,7 @@ class FredApiConnectionManager:
 
         request_url = self._generate_api_url(category=category)
 
-        for tries in max_retries:
+        for tries in range(max_retries):
             if tries >= 1:
                 log = LogLoader.get_log(section='fred_api_manager',
                                         log_name='retrying_request',
