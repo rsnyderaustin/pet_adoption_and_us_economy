@@ -1,9 +1,14 @@
+from datetime import datetime
 import logging
 import requests
-from datetime import datetime
+import time
 from urllib.parse import urljoin
 
 from settings import logging_config, ConfigLoader, LogLoader
+
+
+class MaxFredDataRequestTriesError(Exception):
+    pass
 
 
 class FredApiConnectionManager:
@@ -94,15 +99,51 @@ class FredApiConnectionManager:
         :return: Json data from request to FRED API
         """
 
+        max_retries = ConfigLoader.get_config(section='fred_api',
+                                              config_name='api_connection_retries')
+        retry_delay = ConfigLoader.get_config(section='fred_api',
+                                              config_name='api_connection_retry_delay')
+
         data = {
             'series_id': tag,
             'api_key': self.api_key
         }
 
         request_url = self._generate_api_url(category=category)
-        response = requests.get(url=request_url,
-                                data=data)
-        json_data = response.json()
-        return json_data
+
+        for tries in max_retries:
+            if tries >= 1:
+                log = LogLoader.get_log(section='fred_api_manager',
+                                        log_name='retrying_request',
+                                        parameters={'retries': tries})
+                logging.info(log)
+                time.sleep(retry_delay)
+            try:
+                response = requests.get(url=request_url,
+                                        data=data)
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                log = LogLoader.get_log(section='fred_api_manager',
+                                        log_name='failed_request',
+                                        parameters={
+                                            'tag': tag,
+                                            'retry': tries,
+                                            'details': e
+                                        })
+                logging.error(log)
+                continue
+            try:
+                json_data = response.json()
+                return json_data
+            except requests.exceptions.JSONDecodeError as json_error:
+                logging.error(json_error)
+
+        # End of for loop - this is reached if no data is successfully received
+        log = LogLoader.get_log(section='fred_api_manager',
+                                log_name='failed_to_make_request',
+                                parameters={'num_retries': max_retries})
+        logging.error(log)
+        raise MaxFredDataRequestTriesError
+
 
 

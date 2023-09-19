@@ -9,7 +9,7 @@ from settings import ConfigLoader, LogLoader
 from utils.petfinder import petfinder_access_token
 
 
-class MaxPetfinderApiConnectionTriesError(Exception):
+class MaxPetfinderDataRequestTriesError(Exception):
     pass
 
 
@@ -89,14 +89,15 @@ class PetfinderApiConnectionManager:
             try:
                 response = requests.post(url=self.token_url, data=data)
                 response.raise_for_status()
+                log = LogLoader.get_log(section='petfinder_api_manager',
+                                        log_name='successful_token_generation')
+                logging.info(log)
             except requests.exceptions.RequestException as e:
                 logging.error(e)
                 continue
 
-            log = LogLoader.get_log(section='petfinder_api_manager',
-                                    log_name='successful_token_generation')
-            logging.info(log)
             generation_time = time.time()
+
             try:
                 response_data = response.json()
                 self._handle_access_token(new_token=response_data["access_token"],
@@ -115,6 +116,7 @@ class PetfinderApiConnectionManager:
                                                     'json_data': response_data})
                 logging.error(log)
 
+        # End of for loop - reached if no access token is successfully generated
         log = LogLoader.get_log(section='petfinder_api_manager',
                                 log_name='failed_to_generate_token',
                                 parameters={'num_retries': max_retries})
@@ -123,8 +125,7 @@ class PetfinderApiConnectionManager:
 
     @staticmethod
     def _valid_category(category):
-        category = category.lower()
-        return category in ['animals', 'organizations']
+        return category.lower() in ['animals', 'organizations']
 
     def _generate_api_url(self, category: str):
         """
@@ -168,7 +169,6 @@ class PetfinderApiConnectionManager:
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
                                               config_name='api_connection_retry_delay')
 
-        category = category.lower()
         if not self._valid_category(category):
             log = LogLoader.get_log(section='petfinder_api_manager',
                                     log_name='invalid_category',
@@ -178,10 +178,7 @@ class PetfinderApiConnectionManager:
             logging.error(log)
             raise ValueError(log)
 
-        if self.valid_access_token_exists():
-            access_token = self._access_token.get_access_token()
-        else:
-            access_token = self.generate_access_token()
+        access_token = self.generate_access_token()
 
         access_token_header = {
             'Authorization': f'Bearer {self._generate_access_token_header(access_token)}'
@@ -223,7 +220,9 @@ class PetfinderApiConnectionManager:
             except json.decoder.JSONDecodeError as json_error:
                 logging.error(json_error)
 
+        # End of for loop - this is reached if no data is successfully received
         log = LogLoader.get_log(section='petfinder_api_manager',
                                 log_name='failed_to_make_request',
                                 parameters={'num_retries': max_retries})
         logging.error(log)
+        raise MaxPetfinderDataRequestTriesError

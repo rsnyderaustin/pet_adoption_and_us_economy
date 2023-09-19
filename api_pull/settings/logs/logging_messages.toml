@@ -19,6 +19,9 @@ invalid_variable = "Invalid variable '{variable}' not one of valid variables '{v
 no_vintagedates = "No key '{key}' found in '{variable}'\nJson data: {json_data}."
 datetime_convert_error = "Error converting dates into datetime objects.\nDates:\n{dates}"
 invalid_tag = "Invalid tag '{tag}' not one of valid tags: {valid_tags}."
+failed_request =  "Request to FRED API failed using tag '{tag}' on retry number {retry}. Details: {details}"
+failed_to_make_request = "Completely failed to make request to FRED API after {num_retries} retries."
+retrying_request = "Attempting FRED API data request retry number {retries}."
 
 [messages_logging]
 missing_message = """No logging message found with section name {section_name}, message name {message_name},
