@@ -5,7 +5,7 @@ import logging
 import time
 from urllib.parse import urljoin
 
-from api_pull.settings import TomlConfigLoader, TomlLogsLoader
+from api_pull.settings import TomlConfigLoader as ConfigLoader, TomlLogsLoader as LogsLoader
 from api_pull.utils.petfinder import petfinder_access_token
 
 
@@ -74,23 +74,23 @@ class PetfinderApiConnectionManager:
             'client_secret': self.secret_key
         }
 
-        log = LogLoader.get_log(section='petfinder_api_manager',
-                                log_name='generating_new_token')
+        log = LogsLoader.get_log(section='petfinder_api_manager',
+                                 log_name='generating_new_token')
         logging.info(log)
 
         for tries in range(max_retries):
             if tries >= 1:
-                log = LogLoader.get_log(section='petfinder_api_manager',
-                                        log_name='retrying_token_request',
-                                        parameters={'retries': tries})
+                log = LogsLoader.get_log(section='petfinder_api_manager',
+                                         log_name='retrying_token_request',
+                                         parameters={'retries': tries})
                 logging.info(log)
                 time.sleep(retry_delay)
 
             try:
                 response = requests.post(url=self.token_url, data=data)
                 response.raise_for_status()
-                log = LogLoader.get_log(section='petfinder_api_manager',
-                                        log_name='successful_token_generation')
+                log = LogsLoader.get_log(section='petfinder_api_manager',
+                                         log_name='successful_token_generation')
                 logging.info(log)
             except requests.exceptions.RequestException as e:
                 logging.error(e)
@@ -110,16 +110,16 @@ class PetfinderApiConnectionManager:
             except KeyError:
                 valid_keys = ['access_token', 'expires_in']
                 keys_not_in_response = [key for key in valid_keys if key not in response_data]
-                log = LogLoader.get_log(section='petfinder_api_manager',
-                                        log_name='access_token_invalid_key',
-                                        parameters={'keys_not_in_response': keys_not_in_response,
-                                                    'json_data': response_data})
+                log = LogsLoader.get_log(section='petfinder_api_manager',
+                                         log_name='access_token_invalid_key',
+                                         parameters={'keys_not_in_response': keys_not_in_response,
+                                                     'json_data': response_data})
                 logging.error(log)
 
         # End of for loop - reached if no access token is successfully generated
-        log = LogLoader.get_log(section='petfinder_api_manager',
-                                log_name='failed_to_generate_token',
-                                parameters={'num_retries': max_retries})
+        log = LogsLoader.get_log(section='petfinder_api_manager',
+                                 log_name='failed_to_generate_token',
+                                 parameters={'num_retries': max_retries})
         logging.error(log)
         raise MaxPetfinderTokenGenerationTriesError(log)
 
@@ -135,11 +135,11 @@ class PetfinderApiConnectionManager:
         """
 
         if not self._valid_path(path):
-            log = LogLoader.get_log(section='petfinder_api_manager',
-                                    log_name='invalid_path',
-                                    parameters={
-                                            'path': path
-                                        })
+            log = LogsLoader.get_log(section='petfinder_api_manager',
+                                     log_name='invalid_path',
+                                     parameters={
+                                         'path': path
+                                     })
             logging.error(log)
             raise ValueError(log)
 
@@ -170,11 +170,11 @@ class PetfinderApiConnectionManager:
                                               config_name='api_connection_retry_delay')
 
         if not self._valid_path(path):
-            log = LogLoader.get_log(section='petfinder_api_manager',
-                                    log_name='invalid_path',
-                                    parameters={
-                                            'path': path
-                                        })
+            log = LogsLoader.get_log(section='petfinder_api_manager',
+                                     log_name='invalid_path',
+                                     parameters={
+                                         'path': path
+                                     })
             logging.error(log)
             raise ValueError(log)
 
@@ -188,9 +188,9 @@ class PetfinderApiConnectionManager:
 
         for tries in range(max_retries):
             if tries >= 1:
-                log = LogLoader.get_log(section='petfinder_api_manager',
-                                        log_name='retrying_request',
-                                        parameters={'retries': tries})
+                log = LogsLoader.get_log(section='petfinder_api_manager',
+                                         log_name='retrying_request',
+                                         parameters={'retries': tries})
                 logging.info(log)
                 time.sleep(retry_delay)
             try:
@@ -199,30 +199,30 @@ class PetfinderApiConnectionManager:
                                         params=parameters)
                 response.raise_for_status()
             except requests.exceptions.RequestException as e:
-                log = LogLoader.get_log(section='petfinder_api_manager',
-                                        log_name='failed_request',
-                                        parameters={
-                                            'parameters': parameters,
-                                            'details': e
-                                        })
+                log = LogsLoader.get_log(section='petfinder_api_manager',
+                                         log_name='failed_request',
+                                         parameters={
+                                             'parameters': parameters,
+                                             'details': e
+                                         })
                 logging.error(log)
                 continue
 
             try:
-                log = LogLoader.get_log(section='petfinder_api_manager',
-                                        log_name='successful_request',
-                                        parameters={
-                                            'path': path,
-                                            'parameters': parameters
-                                        })
+                log = LogsLoader.get_log(section='petfinder_api_manager',
+                                         log_name='successful_request',
+                                         parameters={
+                                             'path': path,
+                                             'parameters': parameters
+                                         })
                 logging.info(log)
                 return response
             except json.decoder.JSONDecodeError as json_error:
                 logging.error(json_error)
 
         # End of for loop - this is reached if no data is successfully received
-        log = LogLoader.get_log(section='petfinder_api_manager',
-                                log_name='failed_to_make_request',
-                                parameters={'num_retries': max_retries})
+        log = LogsLoader.get_log(section='petfinder_api_manager',
+                                 log_name='failed_to_make_request',
+                                 parameters={'num_retries': max_retries})
         logging.error(log)
         raise MaxPetfinderDataRequestTriesError

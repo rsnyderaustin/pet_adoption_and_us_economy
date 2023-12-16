@@ -1,32 +1,36 @@
 import pytest
 import tomli
 import os
-import requests
 import requests_mock
 
+from api_pull.settings import TomlConfigLoader, TomlLogsLoader
 from api_pull.utils import PetfinderApiConnectionManager as PfManager
 from api_pull.utils import FredApiConnectionManager as FredManager
 
 
 @pytest.fixture
-def toml_config_data():
-    package_path = os.path.dirname(os.path.dirname(__file__))
-    config_file_path = os.path.join(package_path, 'settings/configs/configs.toml')
-    with open(config_file_path, "rb") as toml_file:
-        config_data = tomli.load(toml_file)
-        return config_data
+def toml_config_loader():
+    return TomlConfigLoader()
 
 
 @pytest.fixture
-def pf_manager(toml_config_data):
-    api_url = toml_config_data['petfinder_api']['api_url']
-    token_url = toml_config_data['petfinder_api']['token_url']
-    api_key = toml_config_data['petfinder_api']['api_key']
-    secret_key = toml_config_data['petfinder_api']['secret_key']
+def pf_manager(toml_config_loader):
+    api_url = toml_config_loader.get_config(section='petfinder_api', config_name='api_url')
+    token_url = toml_config_loader.get_config(section='petfinder_api', config_name='token_url')
+    api_key = toml_config_loader.get_config(section='petfinder_api', config_name='api_key')
+    secret_key = toml_config_loader.get_config(section='petfinder_api', config_name='secret_key')
     return PfManager(api_url=api_url,
                      token_url=token_url,
                      api_key=api_key,
                      secret_key=secret_key)
+
+
+@pytest.fixture
+def fred_manager(toml_config_loader):
+    api_url = toml_config_loader.get_config(section='fred_api', config_name='api_url')
+    api_key = toml_config_loader.get_config(section='fred_api', config_name='api_key')
+    return FredManager(api_url=api_url,
+                       api_key=api_key)
 
 
 @pytest.fixture
@@ -35,14 +39,6 @@ def pf_token_mock():
         m.post('https://api.petfinder.com/v2/oauth2/token', status_code=200, json={'access_token': '12345',
                                                                                    'expires_in': 3600})
         yield m
-
-
-@pytest.fixture
-def fred_manager(toml_config_data):
-    api_url = toml_config_data['fred_api']['api_url']
-    api_key = toml_config_data['fred_api']['api_key']
-    return FredManager(api_url=api_url,
-                       api_key=api_key)
 
 
 def test_petfinder_animals_request_success(pf_manager, pf_token_mock):
