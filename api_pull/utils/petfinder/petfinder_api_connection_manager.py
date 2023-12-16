@@ -6,7 +6,7 @@ import time
 from urllib.parse import urljoin
 
 from api_pull.settings import TomlConfigLoader as ConfigLoader, TomlLogsLoader as LogsLoader
-from api_pull.utils.petfinder import petfinder_access_token
+from api_pull.utils.petfinder.petfinder_access_token import PetfinderAccessToken
 
 
 class MaxPetfinderDataRequestTriesError(Exception):
@@ -36,32 +36,23 @@ class PetfinderApiConnectionManager:
 
     def _handle_access_token(self, new_token, time_of_generation, expiration) -> None:
         """
-
-        :param new_token: Newly generated Petfinder API access token.
-        :param time_of_generation: Time (seconds) of the access token generation.
-        :param expiration: Time (seconds) until access token expiration.
+        Updates the Petfinder access token.
         """
-        if self._access_token:
-            self._access_token.update_access_token(new_token=new_token,
-                                                   time_of_generation=time_of_generation,
-                                                   expiration=expiration)
-        else:
-            self._access_token = petfinder_access_token.PetfinderAccessToken(
-                access_token=new_token,
-                time_of_generation=time_of_generation,
-                expiration=expiration)
+        self._access_token = PetfinderAccessToken(new_token=new_token,
+                                                  time_of_generation=time_of_generation,
+                                                  expiration=expiration)
 
     def valid_access_token_exists(self):
         return self._access_token and self._access_token.token_is_valid()
 
     def generate_access_token(self):
         """
-
+        Generates a new Petfinder access token if necessary, and returns a valid token.
         :return: Petfinder API access token.
         """
 
         if self.valid_access_token_exists():
-            return self._access_token.get_access_token()
+            return self._access_token.access_token
 
         max_retries = ConfigLoader.get_config(section='petfinder_api',
                                               config_name='api_connection_retries')
@@ -100,13 +91,14 @@ class PetfinderApiConnectionManager:
 
             try:
                 response_data = response.json()
+            except json.decoder.JSONDecodeError as json_error:
+                logging.error(json_error)
+                raise
+            try:
                 self._handle_access_token(new_token=response_data["access_token"],
                                           time_of_generation=generation_time,
                                           expiration=response_data["expires_in"])
                 return self._access_token.access_token
-            except json.decoder.JSONDecodeError as json_error:
-                logging.error(json_error)
-                raise
             except KeyError:
                 valid_keys = ['access_token', 'expires_in']
                 keys_not_in_response = [key for key in valid_keys if key not in response_data]
@@ -127,23 +119,23 @@ class PetfinderApiConnectionManager:
     def _valid_path(path):
         return path.lower() in ['animals', 'organizations']
 
-    def _generate_api_url(self, path: str):
+    def _generate_api_url(self, path_endpoint: str):
         """
 
-        :param path:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
+        :param path_endpoint:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
         :return: Formatted Petfinder API URL to be used in an API request.
         """
 
-        if not self._valid_path(path):
+        if not self._valid_path(path_endpoint):
             log = LogsLoader.get_log(section='petfinder_api_manager',
-                                     log_name='invalid_path',
+                                     log_name='invalid_path_endpoint',
                                      parameters={
-                                         'path': path
+                                         'path': path_endpoint
                                      })
             logging.error(log)
             raise ValueError(log)
 
-        formatted_api_url = urljoin(self.api_url, path)
+        formatted_api_url = urljoin(self.api_url, path_endpoint)
 
         return formatted_api_url
 
@@ -156,10 +148,10 @@ class PetfinderApiConnectionManager:
         """
         return {'Authorization': f'Bearer {access_token}'}
 
-    def make_request(self, path: str, parameters: dict):
+    def make_request(self, path_endpoint: str, parameters: dict):
         """
 
-        :param path: Which Petfinder API endpoint of 'animals' or 'organizations' to be requested.
+        :param path_endpoint: Which Petfinder API endpoint of 'animals' or 'organizations' to be requested.
         :param parameters: The parameters specific for the request, formatted in a dict.
         :return: If successful, returns JSON request data. If not successful, raises an error.
         """
@@ -169,11 +161,11 @@ class PetfinderApiConnectionManager:
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
                                               config_name='api_connection_retry_delay')
 
-        if not self._valid_path(path):
+        if not self._valid_path(path_endpoint):
             log = LogsLoader.get_log(section='petfinder_api_manager',
                                      log_name='invalid_path',
                                      parameters={
-                                         'path': path
+                                         'path': path_endpoint
                                      })
             logging.error(log)
             raise ValueError(log)
@@ -184,7 +176,7 @@ class PetfinderApiConnectionManager:
             'Authorization': f'Bearer {self._generate_access_token_header(access_token)}'
         }
 
-        url = self._generate_api_url(path=path)
+        url = self._generate_api_url(path_endpoint=path_endpoint)
 
         for tries in range(max_retries):
             if tries >= 1:
@@ -212,7 +204,7 @@ class PetfinderApiConnectionManager:
                 log = LogsLoader.get_log(section='petfinder_api_manager',
                                          log_name='successful_request',
                                          parameters={
-                                             'path': path,
+                                             'path': path_endpoint,
                                              'parameters': parameters
                                          })
                 logging.info(log)

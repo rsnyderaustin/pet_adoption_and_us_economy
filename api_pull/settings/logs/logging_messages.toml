@@ -3,7 +3,7 @@ wrong_variable_type = "Expected type {expected_type} for variable '{variable_nam
 
 [petfinder_api_manager]
 generating_new_token = "Generating new Petfinder API access token."
-invalid_path = "Path {path} is invalid. Must be 'animals' or 'organizations'"
+invalid_path_endpoint = "Path {path} is invalid. Must be 'animals' or 'organizations'"
 successful_token_generation = "Petfinder access token generated successfully."
 failed_request = """Petfinder api connection with parameters {parameters} produced details '{details}'"""
 successful_request = """Petfinder API manager successfully generated response for \nPath: {path}\n

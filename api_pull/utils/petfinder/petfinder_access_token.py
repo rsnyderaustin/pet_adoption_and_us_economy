@@ -1,16 +1,21 @@
 import time
 
-from api_pull.settings import TomlLogsLoader
-
 
 class PetfinderAccessToken:
+    _instance = None
+    _access_token = None
+    _time_of_generation = None
+    _expiration = None
 
-    def __init__(self, access_token: str, time_of_generation: float, expiration: float):
-        self.access_token = access_token
-        self._time_of_generation = time_of_generation
+    def __new__(cls, new_token, time_of_generation, expiration):
+        if not cls._instance:
+            cls._instance = super(PetfinderAccessToken, cls).__new__(cls)
 
-        # Token padding
-        self._expiration = expiration - 20
+        cls._access_token = new_token
+        cls._time_of_generation = time_of_generation
+        cls._expiration = expiration
+
+        return cls._instance
 
     def token_is_valid(self):
         """
@@ -18,10 +23,7 @@ class PetfinderAccessToken:
         :return: True if the current token is still valid, False if it is not.
         """
         current_time = time.time()
-        is_valid = (self._time_of_generation + self._expiration) >= current_time
+        # Pad the expiration to avoid issues with a delay in checking validity of an access token and using it
+        padded_expiration = self._expiration - 100
+        is_valid = (self._time_of_generation + padded_expiration) >= current_time
         return is_valid
-
-    def update_access_token(self, new_token: str, time_of_generation: float, expiration: float):
-        self.access_token = new_token
-        self._time_of_generation = time_of_generation
-        self._expiration = expiration
