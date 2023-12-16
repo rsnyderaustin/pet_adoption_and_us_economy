@@ -5,8 +5,8 @@ import logging
 import time
 from urllib.parse import urljoin
 
-from settings import ConfigLoader, LogLoader
-from utils.petfinder import petfinder_access_token
+from api_pull.settings import TomlConfigLoader, TomlLogsLoader
+from api_pull.utils.petfinder import petfinder_access_token
 
 
 class MaxPetfinderDataRequestTriesError(Exception):

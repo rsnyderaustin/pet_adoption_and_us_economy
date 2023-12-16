@@ -1,1 +1,1 @@
-from settings.configs.toml_config_loader import TomlConfigLoader
+from .toml_config_loader import TomlConfigLoader

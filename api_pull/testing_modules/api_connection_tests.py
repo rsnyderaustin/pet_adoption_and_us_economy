@@ -4,13 +4,14 @@ import os
 import requests
 import requests_mock
 
-from utils import PfManager, FredManager
+from api_pull.utils import PetfinderApiConnectionManager as PfManager
+from api_pull.utils import FredApiConnectionManager as FredManager
 
 
 @pytest.fixture
 def toml_config_data():
     package_path = os.path.dirname(os.path.dirname(__file__))
-    config_file_path = os.path.join(package_path, 'settings\configs\config.toml')
+    config_file_path = os.path.join(package_path, 'settings/configs/configs.toml')
     with open(config_file_path, "rb") as toml_file:
         config_data = tomli.load(toml_file)
         return config_data

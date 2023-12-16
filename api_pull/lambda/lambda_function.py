@@ -1,7 +1,7 @@
-from api_pull.configs.toml_config_loader import TomlConfigLoader
-from api_pull.configs import logging_config
-from api_pull.utils.petfinder_api_connection_manager import PetfinderApiConnectionManager
-from api_pull.utils.news_api_connection_manager import NewsApiConnectionManager
+from api_pull.settings.configs.toml_config_loader import TomlConfigLoader
+from api_pull.settings.configs import logging_config
+from api_pull.utils.petfinder.petfinder_access_token import PetfinderApiConnectionManager
+from api_pull.utils.fred.fred_api_connection_manager import FredApiConnectionManager
 import boto3
 
 import logging

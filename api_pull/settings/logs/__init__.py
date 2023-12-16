@@ -1,1 +1,2 @@
-from .toml_logging_messages_loader import TomlLoggingMessagesLoader
+from .toml_logs_loader import TomlLogsLoader
+
