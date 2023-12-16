@@ -92,21 +92,18 @@ class PetfinderApiConnectionManager:
             try:
                 response_data = response.json()
             except json.decoder.JSONDecodeError as json_error:
-                logging.error(json_error)
-                raise
+                error_msg = str(json_error)
+                logging.error(error_msg)
+                raise json_error
             try:
                 self._handle_access_token(new_token=response_data["access_token"],
                                           time_of_generation=generation_time,
                                           expiration=response_data["expires_in"])
                 return self._access_token.access_token
-            except KeyError:
-                valid_keys = ['access_token', 'expires_in']
-                keys_not_in_response = [key for key in valid_keys if key not in response_data]
-                log = LogsLoader.get_log(section='petfinder_api_manager',
-                                         log_name='access_token_invalid_key',
-                                         parameters={'keys_not_in_response': keys_not_in_response,
-                                                     'json_data': response_data})
-                logging.error(log)
+            except KeyError as e:
+                error_msg = str(e)
+                logging.error(error_msg)
+                raise e
 
         # End of for loop - reached if no access token is successfully generated
         log = LogsLoader.get_log(section='petfinder_api_manager',
@@ -150,7 +147,7 @@ class PetfinderApiConnectionManager:
 
     def make_request(self, path_endpoint: str, parameters: dict):
         """
-
+        Sends a request to Petfinder API. If successful, returns the JSON data from the response.
         :param path_endpoint: Which Petfinder API endpoint of 'animals' or 'organizations' to be requested.
         :param parameters: The parameters specific for the request, formatted in a dict.
         :return: If successful, returns JSON request data. If not successful, raises an error.
@@ -179,12 +176,14 @@ class PetfinderApiConnectionManager:
         url = self._generate_api_url(path_endpoint=path_endpoint)
 
         for tries in range(max_retries):
+            # Log that the system is retrying a connection
             if tries >= 1:
                 log = LogsLoader.get_log(section='petfinder_api_manager',
                                          log_name='retrying_request',
                                          parameters={'retries': tries})
                 logging.info(log)
                 time.sleep(retry_delay)
+
             try:
                 response = requests.get(headers=access_token_header,
                                         url=url,
@@ -200,17 +199,16 @@ class PetfinderApiConnectionManager:
                 logging.error(log)
                 continue
 
-            try:
-                log = LogsLoader.get_log(section='petfinder_api_manager',
-                                         log_name='successful_request',
-                                         parameters={
-                                             'path': path_endpoint,
-                                             'parameters': parameters
-                                         })
-                logging.info(log)
-                return response
-            except json.decoder.JSONDecodeError as json_error:
-                logging.error(json_error)
+            log = LogsLoader.get_log(section='petfinder_api_manager',
+                                     log_name='successful_request',
+                                     parameters={
+                                         'path': path_endpoint,
+                                         'parameters': parameters
+                                     })
+            logging.info(log)
+
+            json_data = response.json()
+            return json_data
 
         # End of for loop - this is reached if no data is successfully received
         log = LogsLoader.get_log(section='petfinder_api_manager',
