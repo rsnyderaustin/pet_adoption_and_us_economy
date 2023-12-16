@@ -78,7 +78,7 @@ class TomlLogsLoader:
             to access the logs file at a default location.
         :return: A TomlLoggingLoader instance.
         """
-        if not hasattr(cls, '_instance'):
+        if not cls._instance:
             cls._instance = super(TomlLogsLoader, cls).__new__(cls)
 
             cls._set_up_log_format(default_logs_path=cls.default_logs_path)
@@ -181,4 +181,4 @@ class TomlLogsLoader:
             logging.error(err_msg)
             raise BadLogParametersError(err_msg)
 
-        return msg
+        return msg + '\n'

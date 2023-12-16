@@ -1,6 +1,5 @@
-import pytest
-import tomli
 import os
+import pytest
 import requests_mock
 
 from api_pull.settings import TomlConfigLoader, TomlLogsLoader

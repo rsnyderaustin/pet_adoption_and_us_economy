@@ -62,7 +62,7 @@ class TomlConfigLoader:
         Generates a config file path from the current Python directory.
         """
         parent_package_path = os.path.dirname(__file__)
-        config_file_path = os.path.join(parent_package_path, 'config.toml')
+        config_file_path = os.path.join(parent_package_path, 'configs.toml')
         return config_file_path
 
     def __new__(cls, config_file_path=None):

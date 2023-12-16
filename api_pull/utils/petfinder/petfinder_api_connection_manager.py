@@ -103,7 +103,7 @@ class PetfinderApiConnectionManager:
                 self._handle_access_token(new_token=response_data["access_token"],
                                           time_of_generation=generation_time,
                                           expiration=response_data["expires_in"])
-                return self._access_token.get_access_token()
+                return self._access_token.access_token
             except json.decoder.JSONDecodeError as json_error:
                 logging.error(json_error)
                 raise
