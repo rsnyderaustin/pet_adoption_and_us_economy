@@ -14,10 +14,10 @@ def toml_config_loader():
 
 @pytest.fixture
 def pf_manager(toml_config_loader):
-    api_url = toml_config_loader.get_config(section='petfinder_api', config_name='api_url')
-    token_url = toml_config_loader.get_config(section='petfinder_api', config_name='token_url')
-    api_key = toml_config_loader.get_config(section='petfinder_api', config_name='api_key')
-    secret_key = toml_config_loader.get_config(section='petfinder_api', config_name='secret_key')
+    api_url = toml_config_loader.get_config(section='petfinder_api', name='api_url')
+    token_url = toml_config_loader.get_config(section='petfinder_api', name='token_url')
+    api_key = toml_config_loader.get_config(section='petfinder_api', name='api_key')
+    secret_key = toml_config_loader.get_config(section='petfinder_api', name='secret_key')
     return PfManager(api_url=api_url,
                      token_url=token_url,
                      api_key=api_key,
@@ -26,8 +26,8 @@ def pf_manager(toml_config_loader):
 
 @pytest.fixture
 def fred_manager(toml_config_loader):
-    api_url = toml_config_loader.get_config(section='fred_api', config_name='api_url')
-    api_key = toml_config_loader.get_config(section='fred_api', config_name='api_key')
+    api_url = toml_config_loader.get_config(section='fred_api', name='api_url')
+    api_key = toml_config_loader.get_config(section='fred_api', name='api_key')
     return FredManager(api_url=api_url,
                        api_key=api_key)
 
@@ -41,31 +41,31 @@ def pf_token_mock():
 
 
 def test_petfinder_animals_request_success(pf_manager, pf_token_mock):
-    test_path = 'animals'
+    test_endpoint = 'animals'
     test_parameters = {
         'type': 'dog',
         'limit': 20
     }
     json_data = {"key1": "value1", "key2": "value2"}
-    api_url = pf_manager._generate_api_url(path=test_path)
+    api_url = pf_manager._generate_api_url(path_endpoint=test_endpoint)
 
     pf_token_mock.get(api_url, status_code=200, json=json_data)
-    response = pf_manager.make_request(path=test_path,
+    response = pf_manager.make_request(path_endpoint=test_endpoint,
                                        parameters=test_parameters)
     response_json = response.json()
     assert response_json == json_data, f"Expected JSON data {json_data}, received {response_json}"
 
 
 def test_petfinder_organizations_request_success(pf_manager, pf_token_mock):
-    test_path = 'organizations'
+    test_endpoint = 'organizations'
     test_parameters = {
         'state': 'IA'
     }
     json_data = {"key1": "value1", "key2": "value2"}
-    api_url = pf_manager._generate_api_url(path=test_path)
+    api_url = pf_manager._generate_api_url(path_endpoint=test_endpoint)
 
     pf_token_mock.get(api_url, status_code=200, json=json_data)
-    response = pf_manager.make_request(path=test_path,
+    response = pf_manager.make_request(path_endpoint=test_endpoint,
                                        parameters=test_parameters)
     response_json = response.json()
     assert response_json == json_data, f"Expected JSON data {json_data}, received {response_json}"

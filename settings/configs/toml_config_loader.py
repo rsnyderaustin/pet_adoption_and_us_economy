@@ -84,20 +84,20 @@ class TomlConfigLoader:
         TomlConfigLoader._toml_config_data = None
 
     @staticmethod
-    def get_config(section, config_name, configs_file_path=None):
+    def get_config(section, name, configs_file_path=None):
         if not TomlConfigLoader._instance:
             TomlConfigLoader(configs_file_path)
         
         config_data = TomlConfigLoader._toml_config_data
 
         try:
-            config = config_data[section][config_name]
+            config = config_data[section][name]
         except KeyError:
             err_msg = MsgLoader.get_log(section='config_loader',
                                         log_name='missing_config_variable',
                                         parameters={
                                                 'section': section,
-                                                'config_name': config_name
+                                                'config_name': name
                                             }
                                         )
             logging.error(err_msg)

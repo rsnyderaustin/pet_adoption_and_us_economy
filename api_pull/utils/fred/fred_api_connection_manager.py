@@ -1,3 +1,4 @@
+import boto3
 from datetime import datetime
 import logging
 from typing import Union
@@ -6,7 +7,7 @@ import requests
 import time
 from urllib.parse import urljoin
 
-from api_pull.settings import TomlConfigLoader, TomlLogsLoader
+from settings import ConfigLoader as ConfigLoader, LogsLoader as LogsLoader
 
 
 class MaxFredDataRequestTriesError(Exception):
@@ -16,9 +17,8 @@ class MaxFredDataRequestTriesError(Exception):
 class FredApiConnectionManager:
     valid_tags = ['GDP', 'RSXFS', 'UNRATE', 'CPALTT01USM657N', 'DFF']
 
-    def __init__(self, api_url, api_key):
+    def __init__(self, api_url):
         self.api_url = api_url
-        self.api_key = api_key
 
     @staticmethod
     def _is_valid_tag(tag):
@@ -43,9 +43,9 @@ class FredApiConnectionManager:
             are found.
         """
         if not self._is_valid_tag(tag=tag):
-            log = TomlLogsLoader.get_log(section='fred_api_manager',
-                                         log_name='invalid_tag',
-                                         parameters={'valid_tags': FredApiConnectionManager.valid_tags})
+            log = LogsLoader.get_log(section='fred_api_manager',
+                                     log_name='invalid_tag',
+                                     parameters={'valid_tags': FredApiConnectionManager.valid_tags})
             logging.error(log)
             raise ValueError(log)
 
@@ -54,13 +54,13 @@ class FredApiConnectionManager:
         try:
             dates = json_data['vintage_dates']
         except KeyError:
-            log = TomlLogsLoader.get_log(section='fred_api_manager',
-                                         log_name='no_vintagedates',
-                                         parameters={
-                                             'key': 'vintagedates',
-                                             'variable': 'json',
-                                             'json_data': json_data
-                                         })
+            log = LogsLoader.get_log(section='fred_api_manager',
+                                     log_name='no_vintagedates',
+                                     parameters={
+                                         'key': 'vintagedates',
+                                         'variable': 'json',
+                                         'json_data': json_data
+                                     })
             logging.error(log)
             raise KeyError(log)
 
@@ -71,14 +71,30 @@ class FredApiConnectionManager:
         try:
             datetime_dates = [datetime.strptime(date_str, date_format) for date_str in dates]
         except ValueError:
-            log = TomlLogsLoader.get_log(section='fred_api_manager',
-                                         log_name='datetime_convert_error',
-                                         parameters={'dates': dates})
+            log = LogsLoader.get_log(section='fred_api_manager',
+                                     log_name='datetime_convert_error',
+                                     parameters={'dates': dates})
             logging.error(log)
             raise ValueError(log)
 
         last_date = max(datetime_dates)
         return last_date
+
+    @staticmethod
+    def get_api_key():
+        """
+        Pulls the encrypted key parameter from AWS Parameter Store
+        :return: API key
+        """
+        aws_region = ConfigLoader.get_config(section='aws',
+                                             name='region_name')
+        ssm = boto3.client('ssm', aws_region)
+        fred_key_parameter = ConfigLoader.get_config(section='aws',
+                                                     name='fred_api_key_parameter_name')
+        key_response = ssm.get_parameters(Names=[fred_key_parameter],
+                                          WithDecryption=True)
+        api_key = key_response['Parameters'][0]['Value']
+        return api_key
 
     def make_request(self, path_segments: str, tag: str):
         """
@@ -91,23 +107,25 @@ class FredApiConnectionManager:
             successfully receiving data.
         """
 
-        max_retries = TomlConfigLoader.get_config(section='fred_api',
-                                                  config_name='api_connection_retries')
-        retry_delay = TomlConfigLoader.get_config(section='fred_api',
-                                                  config_name='api_connection_retry_delay')
+        max_retries = ConfigLoader.get_config(section='fred_api',
+                                              name='api_connection_retries')
+        retry_delay = ConfigLoader.get_config(section='fred_api',
+                                              name='api_connection_retry_delay')
+
+        api_key = self.get_api_key()
 
         data = {
             'series_id': tag,
-            'api_key': self.api_key
+            'api_key': api_key
         }
 
         request_url = self._generate_api_url(path_segments=path_segments)
 
         for tries in range(max_retries):
             if tries >= 1:
-                log = TomlLogsLoader.get_log(section='fred_api_manager',
-                                             log_name='retrying_request',
-                                             parameters={'retries': tries})
+                log = LogsLoader.get_log(section='fred_api_manager',
+                                         log_name='retrying_request',
+                                         parameters={'retries': tries})
                 logging.info(log)
                 time.sleep(retry_delay)
             try:
@@ -115,13 +133,13 @@ class FredApiConnectionManager:
                                         data=data)
                 response.raise_for_status()
             except requests.exceptions.RequestException as e:
-                log = TomlLogsLoader.get_log(section='fred_api_manager',
-                                             log_name='failed_request',
-                                             parameters={
-                                                 'tag': tag,
-                                                 'retry': tries,
-                                                 'details': e
-                                             })
+                log = LogsLoader.get_log(section='fred_api_manager',
+                                         log_name='failed_request',
+                                         parameters={
+                                             'tag': tag,
+                                             'retry': tries,
+                                             'details': e
+                                         })
                 logging.error(log)
                 continue
             try:
@@ -133,8 +151,8 @@ class FredApiConnectionManager:
             tries += 1
 
         # Out of the for loop - this is reached if no data is successfully received
-        log = TomlLogsLoader.get_log(section='fred_api_manager',
-                                     log_name='failed_to_make_request',
-                                     parameters={'num_retries': max_retries})
+        log = LogsLoader.get_log(section='fred_api_manager',
+                                 log_name='failed_to_make_request',
+                                 parameters={'num_retries': max_retries})
         logging.error(log)
         raise MaxFredDataRequestTriesError

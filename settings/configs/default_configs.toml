@@ -11,3 +11,5 @@ api_key = ""
 secret_key = ""
 api_connection_retries = 10
 api_connection_retry_delay = 5
+
+[aws_lambda]

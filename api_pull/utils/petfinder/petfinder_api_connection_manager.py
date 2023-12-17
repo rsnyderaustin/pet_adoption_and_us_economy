@@ -19,18 +19,14 @@ class MaxPetfinderTokenGenerationTriesError(Exception):
 
 class PetfinderApiConnectionManager:
 
-    def __init__(self, api_url, token_url, api_key, secret_key):
+    def __init__(self, api_url, token_url):
         """
 
         :param api_url: Petfinder API URL
         :param token_url: Petfinder token generator URL
-        :param api_key: Petfinder API key - specific to each Petfinder account.
-        :param secret_key: Petfinder secret API key - specific to each Petfinder account.
         """
         self.api_url = api_url
         self.token_url = token_url
-        self.api_key = api_key
-        self.secret_key = secret_key
 
         self._access_token = None
 
@@ -55,13 +51,13 @@ class PetfinderApiConnectionManager:
             return self._access_token.access_token
 
         max_retries = ConfigLoader.get_config(section='petfinder_api',
-                                              config_name='api_connection_retries')
+                                              name='api_connection_retries')
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
-                                              config_name='api_connection_retry_delay')
+                                              name='api_connection_retry_delay')
 
         data = {
             'grant_type': 'client_credentials',
-            'client_id': self.api_key,
+            'client_id': api_key,
             'client_secret': self.secret_key
         }
 
@@ -154,9 +150,9 @@ class PetfinderApiConnectionManager:
         """
 
         max_retries = ConfigLoader.get_config(section='petfinder_api',
-                                              config_name='api_connection_retries')
+                                              name='api_connection_retries')
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
-                                              config_name='api_connection_retry_delay')
+                                              name='api_connection_retry_delay')
 
         if not self._valid_path(path_endpoint):
             log = LogsLoader.get_log(section='petfinder_api_manager',

@@ -28,7 +28,7 @@ def log_loader():
 
 def test_get_config_success():
     config_value = settings.ConfigLoader.get_config(section='config_test',
-                                                    config_name='test_config',
+                                                    name='test_config',
                                                     configs_file_path=get_toml_path())
     assert config_value == "Test config"
 
@@ -36,7 +36,7 @@ def test_get_config_success():
 def test_get_config_fail():
     with pytest.raises(settings.configs.toml_config_loader.MissingConfigFileValueError):
         config_value = settings.ConfigLoader.get_config(section='bad_section',
-                                                        config_name='bad_config',
+                                                        name='bad_config',
                                                         configs_file_path=get_toml_path())
 
 
