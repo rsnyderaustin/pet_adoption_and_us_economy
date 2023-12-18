@@ -1,18 +1,1 @@
-[fred_api]
-api_url = "https://api.stlouisfed.org/fred/"
-api_connection_retries = 10
-api_connection_retry_delay = 5
 
-[petfinder_api]
-api_url = "https://api.petfinder.com/v2/"
-token_url = "https://api.petfinder.com/v2/oauth2/token"
-api_key = "cdOz6FyD0FLdD6lhYWOQh4zUI5gclgHekVFTYUECTxQZKJiqNl"
-secret_key = "ItcucxYTgkTrJ4Z0PxtfhkQzLepFYGpZ2ynOjjQF"
-api_connection_retries = 10
-api_connection_retry_delay = 5
-
-[aws]
-region_name = "us-east-1"
-s3_bucket_name = ""
-fred_api_key_parameter_name = ""
-petfinder_api_parameter_name = ""

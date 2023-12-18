@@ -1,10 +1,15 @@
 import boto3
 import json
+import os
 
 from api_pull import PetfinderApiConnectionManager as PfManager
 from api_pull import FredApiConnectionManager as FredManager
 from settings import TomlConfigLoader as ConfigLoader
 from settings import TomlLogsLoader as LogsLoader
+
+# Load in Lambda environment variables
+PORT = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
+AWS_SESSION_TOKEN = os.environ['AWS_SESSION_TOKEN']
 
 
 def create_petfinder_manager():
@@ -33,9 +38,19 @@ def create_fred_manager():
     return news_api_manager
 
 
+### Define function to retrieve values from extension local HTTP server cache
+def retrieve_configs(url):
+    url = ('http://localhost:' + port + url)
+    headers = { "X-Aws-Parameters-Secrets-Token": os.environ.get('AWS_SESSION_TOKEN') }
+    response = http.request("GET", url, headers=headers)
+    response = json.loads(response.data)
+    return response
+
+
+# Default entry point for AWS Lambda
 def lambda_handler(event, context):
-    petfinder_api_manager = create_petfinder_manager()
-    fred_api_manager = create_fred_manager()
+    parameter_url =
+    config_values = retrieve_configs()
 
     json_data = "get_json_data_here"
 

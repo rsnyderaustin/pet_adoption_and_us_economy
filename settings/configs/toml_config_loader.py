@@ -11,7 +11,7 @@ class MissingConfigFileError(Exception):
 class MissingConfigFileValueError(Exception):
     pass
 
-
+# Not in use currently - instead using AWS Systems Management Parameter Store
 class TomlConfigLoader:
     _instance = None
     _toml_config_data = None
