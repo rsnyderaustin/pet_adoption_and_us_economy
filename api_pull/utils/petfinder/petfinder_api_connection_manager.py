@@ -28,8 +28,6 @@ class PetfinderApiConnectionManager:
         self.api_url = api_url
         self.token_url = token_url
 
-        self._access_token = None
-
     def _handle_access_token(self, new_token, time_of_generation, expiration) -> None:
         """
         Updates the Petfinder access token.
@@ -41,7 +39,7 @@ class PetfinderApiConnectionManager:
     def valid_access_token_exists(self):
         return self._access_token and self._access_token.token_is_valid()
 
-    def generate_access_token(self):
+    def generate_access_token(self, api_key, secret_key):
         """
         Generates a new Petfinder access token if necessary, and returns a valid token.
         :return: Petfinder API access token.
@@ -58,7 +56,7 @@ class PetfinderApiConnectionManager:
         data = {
             'grant_type': 'client_credentials',
             'client_id': api_key,
-            'client_secret': self.secret_key
+            'client_secret': secret_key
         }
 
         log = LogsLoader.get_log(section='petfinder_api_manager',

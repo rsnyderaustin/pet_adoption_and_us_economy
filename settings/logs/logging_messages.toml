@@ -35,3 +35,8 @@ no_config_file_specified_location = """Failed to connect to specified toml confi
 no_config_file_default_location = """Failed to connect to toml config file at default location: '{config_file_path}'."""
 missing_config_data = "Toml config data with section {section} and config variale name {config_name}."
 missing_config_variable = "Tried to access missing config variable with section '{section}' and config name '{config_name}'."
+
+[aws_lambda]
+parameter_value_not_found = """Failed to find value while retrieving parameter from AWS Parameter Store."""
+parameter_request_http_error = """AWS Parameter Store request HTTP error: '{message}'."""
+parameter_request_other_error = """AWS Parameter Store request non-HTTP error: '{message}'."""
