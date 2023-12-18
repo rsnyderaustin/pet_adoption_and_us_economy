@@ -6,7 +6,6 @@ import time
 from urllib.parse import urljoin
 
 from api_pull.settings import TomlConfigLoader as ConfigLoader, TomlLogsLoader as LogsLoader
-from api_pull.utils.petfinder.petfinder_access_token import PetfinderAccessToken
 
 
 class MaxPetfinderDataRequestTriesError(Exception):
@@ -27,14 +26,6 @@ class PetfinderApiConnectionManager:
         """
         self.api_url = api_url
         self.token_url = token_url
-
-    def _handle_access_token(self, new_token, time_of_generation, expiration) -> None:
-        """
-        Updates the Petfinder access token.
-        """
-        self._access_token = PetfinderAccessToken(new_token=new_token,
-                                                  time_of_generation=time_of_generation,
-                                                  expiration=expiration)
 
     def valid_access_token_exists(self):
         return self._access_token and self._access_token.token_is_valid()

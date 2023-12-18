@@ -8,21 +8,18 @@ from api_pull import PetfinderApiConnectionManager as PfManager
 from api_pull import FredApiConnectionManager as FredManager
 from settings import TomlLogsLoader as LogsLoader
 
-
 AWS_SESSION_TOKEN = os.environ['AWS_SESSION_TOKEN']
 CACHE_PORT = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 PROJECT_NAME = os.environ['PARAMS_PROJECT_NAME']
 HTTP = urllib3.PoolManager()
 BASE_URL = f'http://localhost:{CACHE_PORT}/systemsmanager/parameters/get?name='
 
-class AwsParameterNotFoundError(Exception):
-    pass
 
 def retrieve_aws_parameter(parameter_name, secret=False):
     request_url = f'{BASE_URL}%2F{PROJECT_NAME}%2f{parameter_name}/'
 
     if secret:
-        headers = { "X-Aws-Parameters-Secrets-Token": os.environ.get(AWS_SESSION_TOKEN) }
+        headers = {"X-Aws-Parameters-Secrets-Token": os.environ.get(AWS_SESSION_TOKEN)}
         request_url += '&withDecryption=True'
         response = HTTP.request("GET", request_url, headers=headers)
     else:
@@ -34,11 +31,13 @@ def retrieve_aws_parameter(parameter_name, secret=False):
                                        log_name='parameter_request_http_error',
                                        parameters={'message': e})
         logging.error(error_msg)
+        raise e
     except Exception as e:
         error_msg = LogsLoader.get_log(section='aws_lambda',
                                        log_name='parameter_request_other_error',
                                        parameters={'message': e})
         logging.error(error_msg)
+        raise e
 
     try:
         value = response['Parameters'][0]['Value']
@@ -46,11 +45,27 @@ def retrieve_aws_parameter(parameter_name, secret=False):
         error_msg = LogsLoader.get_log(section='aws_lambda',
                                        log_name='parameter_value_not_found')
         logging.error(error_msg)
-        raise AwsParameterNotFoundError
+        raise KeyError
 
     return value
 
 
 # Mandatory entry point for AWS Lambda
 def lambda_handler(event, context):
+    pf_manager = PfManager()
+    pf_key = retrieve_aws_parameter(parameter_name='Needs updated')
+    pf_secret_key = retrieve_aws_parameter(parameter_name='Needs updated')
+    pf_access_token = pf_manager.generate_access_token()
 
+    fred_manager = FredManager()
+    fred_key = retrieve_aws_parameter(parameter_name='Needs updated')
+
+    date_of_last_update = retrieve_aws_parameter(parameter_name='Needs updated')
+
+    # Need to figure out how to format and store individual requests
+    pf_dog_data = pf_manager.make_request(path_endpoint='animals',
+                                          parameters={'type': 'dog',
+                                                      'status': 'adoptable'})
+    pf_cat_data = pf_manager.make_request(path_endpoint='animals',
+                                          parameters={'type': 'cat',
+                                                      'status': 'adoptable'})
