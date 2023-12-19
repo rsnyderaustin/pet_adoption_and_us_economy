@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 import os
@@ -49,6 +50,12 @@ def retrieve_aws_parameter(parameter_name, secret=False):
 
     return value
 
+def need_to_update_access_key(update_deadline):
+    current_datetime = datetime.now()
+    current_datetime = current_datetime.strftime("%Y-%m-%dT%H:%S")
+
+    # Buffer update deadline by 100 seconds to prevent check now being valid
+    update_deadline =
 
 # Mandatory entry point for AWS Lambda
 def lambda_handler(event, context):
@@ -56,6 +63,10 @@ def lambda_handler(event, context):
     pf_access_token_url = retrieve_aws_parameter(parameter_name='Needs updated')
     pf_manager = PfManager(api_url=pf_api_url,
                            token_url=pf_access_token_url)
+    # Date format: "YYYY-MM-DD
+    pf_key_update_deadline = retrieve_aws_parameter(parameter_name='Needs updated')
+    if
+
     pf_key = retrieve_aws_parameter(parameter_name='Needs updated')
     pf_secret_key = retrieve_aws_parameter(parameter_name='Needs updated')
     pf_access_token = pf_manager.generate_access_token(api_key=pf_key,
