@@ -8,7 +8,7 @@ import time
 from urllib.parse import urljoin
 
 from settings import ConfigLoader as ConfigLoader, LogsLoader as LogsLoader
-
+from .fred_api_request import FredApiRequest
 
 class MaxFredDataRequestTriesError(Exception):
     pass
@@ -21,18 +21,6 @@ class FredApiConnectionManager:
     def __init__(self, api_url):
         self.api_url = api_url
 
-    @staticmethod
-    def _is_valid_series_id(series_id):
-        series_id = series_id.upper()
-        return series_id in FredApiConnectionManager.valid_series_ids
-
-    def _generate_api_url(self, path_segments: Union[list[str], str]) -> str:
-        """
-        Generates a formatted FRED API URL to be used in an API request.
-        """
-        path_end = "/".join(path_segments) if isinstance(path_segments, list) else path_segments
-        formatted_api_url = urljoin(self.api_url, path_end)
-        return formatted_api_url
 
     def get_last_updated_date(self, series_id) -> Union[datetime, None]:
         """
@@ -98,7 +86,7 @@ class FredApiConnectionManager:
         api_key = key_response['Parameters'][0]['Value']
         return api_key
 
-    def make_request(self, path_segments: str, series_id: str):
+    def make_request(self, fred_api_request: FredApiRequest):
         """
         Sends an API request to the FRED API.
         :param path_segments:
@@ -115,12 +103,12 @@ class FredApiConnectionManager:
 
         api_key = self.get_api_key()
 
+        request_series_id = fred_api_request.series_id
         data = {
-            'series_id': series_id,
+            'series_id': request_series_id,
             'api_key': api_key
         }
 
-        request_url = self._generate_api_url(path_segments=path_segments)
 
         for tries in range(max_retries):
             if tries >= 1:

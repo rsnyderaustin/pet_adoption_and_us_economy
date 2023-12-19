@@ -6,6 +6,7 @@ import time
 from urllib.parse import urljoin
 
 from api_pull.settings import TomlConfigLoader as ConfigLoader, TomlLogsLoader as LogsLoader
+from .petfinder_api_request import PetfinderApiRequest
 
 
 class MaxPetfinderDataRequestTriesError(Exception):
@@ -35,9 +36,6 @@ class PetfinderApiConnectionManager:
         Generates a new Petfinder access token if necessary, and returns a valid token.
         :return: Petfinder API access token.
         """
-
-        if self.valid_access_token_exists():
-            return self._access_token.access_token
 
         max_retries = ConfigLoader.get_config(section='petfinder_api',
                                               name='api_connection_retries')
@@ -97,44 +95,9 @@ class PetfinderApiConnectionManager:
         logging.error(log)
         raise MaxPetfinderTokenGenerationTriesError(log)
 
-    @staticmethod
-    def _valid_path(path):
-        return path.lower() in ['animals', 'organizations']
-
-    def _generate_api_url(self, path_endpoint: str):
-        """
-
-        :param path_endpoint:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
-        :return: Formatted Petfinder API URL to be used in an API request.
-        """
-
-        if not self._valid_path(path_endpoint):
-            log = LogsLoader.get_log(section='petfinder_api_manager',
-                                     log_name='invalid_path_endpoint',
-                                     parameters={
-                                         'path': path_endpoint
-                                     })
-            logging.error(log)
-            raise ValueError(log)
-
-        formatted_api_url = urljoin(self.api_url, path_endpoint)
-
-        return formatted_api_url
-
-    @staticmethod
-    def _generate_access_token_header(access_token: str):
-        """
-
-        :param access_token: Previously generated Petfinder API access token.
-        :return: Access token header formatted for Petfinder API request.
-        """
-        return {'Authorization': f'Bearer {access_token}'}
-
-    def make_request(self, path_endpoint: str, parameters: dict):
+    def make_request(self, access_token, petfinder_api_request: PetfinderApiRequest):
         """
         Sends a request to Petfinder API. If successful, returns the JSON data from the response.
-        :param path_endpoint: Which Petfinder API endpoint of 'animals' or 'organizations' to be requested.
-        :param parameters: The parameters specific for the request, formatted in a dict.
         :return: If successful, returns JSON request data. If not successful, raises an error.
         """
 
@@ -143,22 +106,14 @@ class PetfinderApiConnectionManager:
         retry_delay = ConfigLoader.get_config(section='petfinder_api',
                                               name='api_connection_retry_delay')
 
-        if not self._valid_path(path_endpoint):
-            log = LogsLoader.get_log(section='petfinder_api_manager',
-                                     log_name='invalid_path',
-                                     parameters={
-                                         'path': path_endpoint
-                                     })
-            logging.error(log)
-            raise ValueError(log)
-
-        access_token = self.generate_access_token()
-
         access_token_header = {
-            'Authorization': f'Bearer {self._generate_access_token_header(access_token)}'
+            'Authorization': f'Bearer {access_token}'
         }
 
-        url = self._generate_api_url(path_endpoint=path_endpoint)
+        category = petfinder_api_request.category
+        urljoin(self.api_url, category)
+
+        parameters = petfinder_api_request.parameters
 
         for tries in range(max_retries):
             # Log that the system is retrying a connection
@@ -187,7 +142,7 @@ class PetfinderApiConnectionManager:
             log = LogsLoader.get_log(section='petfinder_api_manager',
                                      log_name='successful_request',
                                      parameters={
-                                         'path': path_endpoint,
+                                         'path': category,
                                          'parameters': parameters
                                      })
             logging.info(log)
