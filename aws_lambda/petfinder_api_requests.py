@@ -1,6 +1,6 @@
 
 
-class PetfinderApiRequest:
+class PetfinderApiRequests:
 
     def __init__(self, name: str, category: str, parameters: dict):
         self.name = name

@@ -52,12 +52,17 @@ def retrieve_aws_parameter(parameter_name, secret=False):
 
 # Mandatory entry point for AWS Lambda
 def lambda_handler(event, context):
-    pf_manager = PfManager()
+    pf_api_url = retrieve_aws_parameter(parameter_name='Needs updated')
+    pf_access_token_url = retrieve_aws_parameter(parameter_name='Needs updated')
+    pf_manager = PfManager(api_url=pf_api_url,
+                           token_url=pf_access_token_url)
     pf_key = retrieve_aws_parameter(parameter_name='Needs updated')
     pf_secret_key = retrieve_aws_parameter(parameter_name='Needs updated')
-    pf_access_token = pf_manager.generate_access_token()
+    pf_access_token = pf_manager.generate_access_token(api_key=pf_key,
+                                                       secret_key=pf_secret_key)
 
-    fred_manager = FredManager()
+    fred_api_url = retrieve_aws_parameter(parameter_name='Needs updated')
+    fred_manager = FredManager(api_url=fred_api_url)
     fred_key = retrieve_aws_parameter(parameter_name='Needs updated')
 
     date_of_last_update = retrieve_aws_parameter(parameter_name='Needs updated')

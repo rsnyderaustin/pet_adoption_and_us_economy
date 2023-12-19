@@ -15,49 +15,51 @@ class MaxFredDataRequestTriesError(Exception):
 
 
 class FredApiConnectionManager:
-    valid_tags = ['GDP', 'RSXFS', 'UNRATE', 'CPALTT01USM657N', 'DFF']
+    # There are plenty other FRED series ID's, but these are the only ones I am currently using
+    valid_series_ids = ['GDP', 'RSXFS', 'UNRATE', 'CPALTT01USM657N', 'DFF']
 
     def __init__(self, api_url):
         self.api_url = api_url
 
     @staticmethod
-    def _is_valid_tag(tag):
-        tag = tag.upper()
-        return tag in FredApiConnectionManager.valid_tags
+    def _is_valid_series_id(series_id):
+        series_id = series_id.upper()
+        return series_id in FredApiConnectionManager.valid_series_ids
 
     def _generate_api_url(self, path_segments: Union[list[str], str]) -> str:
         """
-        Generates a formatted Petfinder API URL to be used in an API request.
-        :param path_segments:  Which Petfinder API endpoint of 'animals' or 'organizations' to use in the URL.
+        Generates a formatted FRED API URL to be used in an API request.
         """
         path_end = "/".join(path_segments) if isinstance(path_segments, list) else path_segments
         formatted_api_url = urljoin(self.api_url, path_end)
         return formatted_api_url
 
-    def get_last_updated_date(self, tag) -> Union[datetime, None]:
+    def get_last_updated_date(self, series_id) -> Union[datetime, None]:
         """
-        Get the most recent date on which data for the specified FRED API tag was updated.
+        Get the most recent date on which data for the specified FRED API series_id was updated.
 
-        :param tag: A FRED API tag.
-        :return: A datetime object representing the most recent update date for the specified tag, or None if no dates
+        :param series_id: A FRED API series_id.
+        :return: A datetime object representing the most recent update date for the specified series_id, or None if no dates
             are found.
         """
-        if not self._is_valid_tag(tag=tag):
+        if not self._is_valid_series_id(series_id=series_id):
             log = LogsLoader.get_log(section='fred_api_manager',
-                                     log_name='invalid_tag',
-                                     parameters={'valid_tags': FredApiConnectionManager.valid_tags})
+                                     log_name='invalid_series_id',
+                                     parameters={'valid_series_ids': FredApiConnectionManager.valid_series_ids})
             logging.error(log)
             raise ValueError(log)
 
-        json_data = self.make_request(path_segments='vintagedates',
-                                      tag=tag)
+        json_data = self.make_request(path_segments='vintage_dates',
+                                      series_id=series_id)
+
         try:
+            # Retrieve only dates when the series data was revised or new data added
             dates = json_data['vintage_dates']
         except KeyError:
             log = LogsLoader.get_log(section='fred_api_manager',
-                                     log_name='no_vintagedates',
+                                     log_name='no_vintage_dates',
                                      parameters={
-                                         'key': 'vintagedates',
+                                         'key': 'vintage_dates',
                                          'variable': 'json',
                                          'json_data': json_data
                                      })
@@ -96,12 +98,11 @@ class FredApiConnectionManager:
         api_key = key_response['Parameters'][0]['Value']
         return api_key
 
-    def make_request(self, path_segments: str, tag: str):
+    def make_request(self, path_segments: str, series_id: str):
         """
         Sends an API request to the FRED API.
         :param path_segments:
-        :param variable:
-        :param tag:
+        :param series_id:
         :return: Json data returned from the FRED API request.
         :raises MaxFredDataRequestTriesError: If the maximum number of API data request retries is reached without
             successfully receiving data.
@@ -115,7 +116,7 @@ class FredApiConnectionManager:
         api_key = self.get_api_key()
 
         data = {
-            'series_id': tag,
+            'series_id': series_id,
             'api_key': api_key
         }
 
@@ -136,7 +137,7 @@ class FredApiConnectionManager:
                 log = LogsLoader.get_log(section='fred_api_manager',
                                          log_name='failed_request',
                                          parameters={
-                                             'tag': tag,
+                                             'series_id': series_id,
                                              'retry': tries,
                                              'details': e
                                          })
