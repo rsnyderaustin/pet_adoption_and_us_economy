@@ -149,6 +149,7 @@ def find_last_updated_day(dynamodb_table, partition_key_name, partition_key_valu
 
 # Mandatory entry point for AWS Lambda
 def lambda_handler(event, context):
+    # Create the Petfinder API Manager
     pf_api_url = retrieve_aws_parameter(env_variable_name='Needs updated')
     pf_access_token_url = retrieve_aws_parameter(env_variable_name='Needs updated')
     pf_manager = PfManager(api_url=pf_api_url,
@@ -157,10 +158,13 @@ def lambda_handler(event, context):
     pf_api_key = retrieve_aws_parameter(env_variable_name='PETFINDER_API_KEY')
     pf_secret_key = retrieve_aws_parameter(env_variable_name='PETFINDER_SECRET_KEY')
 
+    # Create the FRED API Manager
     fred_api_url = retrieve_aws_parameter(env_variable_name='FRED_API_URL')
     fred_manager = FredManager(api_url=fred_api_url)
     fred_api_key = retrieve_aws_parameter(env_variable_name='FRED_API_KEY')
 
+    # Get the configurations for each API request from a JSON file in an AWS S3 bucket
+    # See function doc for return format
     request_configs_bucket_name = retrieve_aws_parameter(env_variable_name='REQUEST_CONFIGS_BUCKET_NAME')
     request_configs_bucket_key = retrieve_aws_parameter(env_variable_name='REQUEST_CONFIGS_BUCKET_KEY')
     api_requests = retrieve_api_request_configs(bucket_name=request_configs_bucket_name,
@@ -171,7 +175,7 @@ def lambda_handler(event, context):
     pf_access_token = pf_manager.generate_access_token(api_key=pf_api_key,
                                                        secret_key=pf_secret_key)
 
-    # Connect to DynamoDB
+    # Connect to DynamoDB and get our data table
     dynamodb_client = boto3.resource('dynamodb')
     dynamodb_table_name = retrieve_aws_parameter(env_variable_name='DYNAMODB_TABLE_NAME')
     dynamodb_table = dynamodb_client.Table(dynamodb_table_name)
@@ -186,9 +190,8 @@ def lambda_handler(event, context):
         request_name = request.name
         request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                     petfinder_api_request=request)
-
+        
         # Push JSON data to dynamoDB big data table, and update
-
 
     fred_api_max_retries = retrieve_aws_parameter(env_variable_name='FRED_API_MAX_RETRIES')
     fred_api_request_retry_delay = retrieve_aws_parameter(env_variable_name='FRED_API_REQUEST_RETRY_DELAY')
@@ -199,7 +202,6 @@ def lambda_handler(event, context):
                                                  partition_key_name=dynamodb_partition_key,
                                                  partition_key_value=request_name,
                                                  sort_key_name=dynamodb_sort_key,
-                                                 date_today=date_today,
                                                  date_format=date_format_param)
 
         # We are only looking to get a snapshot of the data once per day, so skip the series if we already have today's
@@ -213,13 +215,17 @@ def lambda_handler(event, context):
         elif last_updated_day is None:
             # Last updated day is None when no day is found to have been updated in the last 2 years. Meaning there
             observation_start_str = '1776-07-04'
+        else:
+            # We are looking for the data after the last updated date
+            observation_start = last_updated_day + timedelta(days=1)
+            observation_start_str = observation_start.strftime(date_format_param)
+        try:
+            request_json_data = fred_manager.make_request(api_key=fred_api_key,
+                                                          fred_api_request=request,
+                                                          observation_start=observation_start_str,
+                                                          max_retries=fred_api_max_retries,
+                                                          retry_delay=fred_api_request_retry_delay)
+        except Exception as e:
+            logging.error(str(e))
+            continue
 
-        # We want to get the data after the last updated day
-        observation_start = last_updated_day + timedelta(days=1)
-        observation_start_str = observation_start.strftime(date_format_param)
-
-        request_json_data = fred_manager.make_request(api_key=fred_api_key,
-                                                      fred_api_request=request,
-                                                      observation_start=observation_start_str,
-                                                      max_retries=fred_api_max_retries,
-                                                      retry_delay=fred_api_request_retry_delay)
