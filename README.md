@@ -12,7 +12,6 @@ Individual API requests are stored in a separate class file within the AWS Lambd
 ### FRED API
 Unlike the Petfinder API, the current simplicity of our API calls to the FRED API don't require the storage of 
 any API request configs. API requests are simply made by sequentially requesting data for each valid series ID.
-For consistency, these values are still stored in a separate file in the AWS Lambda Python package.
 In the FRED API, our data is requested via 'series id'. The valid series ID's and their corresponding
 data series are listed below:
 1. GDP: Gross Domestic Product
@@ -20,13 +19,6 @@ data series are listed below:
 3. UNRATE: Unemployment Rate
 4. CPALTT01USM657N: Consumer Price Index: All Items
 5. DFF: Federal Funds Effective Rate
-
-This program's process of updating FRED series data is as follows. The below process is an example 
-for just an individual series:
-1. Check the date of the last data update for the series.
-2. Compare the date from Step 1 to the last date that the internal data was updated.
-3. If the internal last-updated date is behind the FRED last-updated date, make an API request to update the data.
-4. If step 3 was completed, replace the appropriate data in AWS S3.
 
 # Website
 ### Charting Data
