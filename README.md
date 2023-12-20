@@ -1,4 +1,5 @@
 ### Development Notes
+DynamoDB Pricing: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ProvisionedThroughput.html#ItemSizeCalculations.Reads
 Using AWS Parameter Store for AWS and API keys
     Add Parameter Store and Secrets Manager Lambda Extension after Lambda program is completed
     https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html
@@ -6,7 +7,7 @@ Charts to display:
 Number of pets published to adoption compared to each of 5 different tags
 
 ### Petfinder API
-Individual API requests are stored in a separate class file within the AWS Lambda Python package.
+
 
 
 ### FRED API
@@ -29,6 +30,18 @@ DynamoDB is the best choice as the database will only have to be read and writte
 project within the free tier. Additionally, the access patterns are consistently based on only two keys: by series ID's 
 and dates for FRED, and by animal type and dates for Petfinder. The consistent access patterns around just two keys is 
 ideal for DynamoDB. So, DynamoDB is the database of choice for this project.
+
+### Database Format
+
+#### FRED
+#### PetFinder
+animal_type (PartitionKey) | MM/DD/YYYY (SortKey) | num_adoptable_animals_published
+---------------------------------------------------------------------
+all                        | 12/20/2023           | 52
+dog                        | 12/20/2023           | 20
+cat                        | 12/20/2023           | 12
+all                        | 12/19/2023           | 68
+...
 
 # Website
 ### Charting Data

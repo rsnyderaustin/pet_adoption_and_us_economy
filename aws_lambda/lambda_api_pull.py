@@ -1,8 +1,10 @@
 import boto3
-from datetime import datetime
+from boto3.dynamodb.conditions import Key
+from datetime import datetime, timedelta
 import json
 import logging
 import os
+from typing import Union
 import urllib3
 from urllib3.exceptions import HTTPError
 
@@ -27,7 +29,7 @@ def retrieve_aws_parameter(env_variable_name, parameter_is_secret=False):
     :param parameter_is_secret: Whether the value stored in AWS Parameter Store is a SecureString.
     :return:
     """
-    parameter_name = os.environ[env_variable_name]
+    parameter_name = os.environ[env_variable_name].lower()
     request_url = f'{BASE_URL}%2F{PROJECT_NAME}%2f{parameter_name}/'
 
     if parameter_is_secret:
@@ -110,8 +112,39 @@ def retrieve_api_request_configs(bucket_name, bucket_key) -> dict:
 
     return dict_to_return
 
-def get_last_updated_dynamodb_date(dynamodb_table: boto3.Table, partition_key, sort_key):
 
+def find_last_updated_day(dynamodb_table, partition_key_name, partition_key_value, sort_key_name, date_format: str) \
+        -> Union[datetime, None]:
+    """
+
+    :param dynamodb_table:
+    :param partition_key_name:
+    :param partition_key_value:
+    :param sort_key_name:
+    :param date_today:
+    :param date_format:
+    :return: The date object of the last updated day in the DynamoDB table, or None if no date is found within 1000 days.
+    """
+    response = dynamodb_table.query(
+        KeyConditionExpression="#pk = :pk AND #sk = :sk",
+        ExpressionAttributeNames={
+            '#pk': partition_key_name,
+            '#sk': sort_key_name
+        },
+        ExpressionAttributeValues={
+            ":pk": {'S': partition_key_value}
+        },
+        # Sort dates in descending order (most recent at the top)
+        ScanIndexForward=False,
+        Limit=1
+    )
+    if response and 'Items' in response:
+        last_item = response['Items'][0]
+        last_updated_day = last_item[sort_key_name]
+        last_updated_day_object = datetime.strptime(last_updated_day, date_format)
+        return last_updated_day_object
+    else:
+        return None
 
 
 # Mandatory entry point for AWS Lambda
@@ -146,6 +179,9 @@ def lambda_handler(event, context):
     dynamodb_partition_key = retrieve_aws_parameter(env_variable_name='DYNAMODB_PARTITION_KEY')
     dynamodb_sort_key = retrieve_aws_parameter(env_variable_name='DYNAMODB_SORT_KEY')
 
+    date_today = datetime.now().date()
+    date_format_param = retrieve_aws_parameter(env_variable_name='DATE_STRING_FORMAT')
+
     for request in pf_requests:
         request_name = request.name
         request_json_data = pf_manager.make_request(access_token=pf_access_token,
@@ -153,12 +189,37 @@ def lambda_handler(event, context):
 
         # Push JSON data to dynamoDB big data table, and update
 
+
+    fred_api_max_retries = retrieve_aws_parameter(env_variable_name='FRED_API_MAX_RETRIES')
+    fred_api_request_retry_delay = retrieve_aws_parameter(env_variable_name='FRED_API_REQUEST_RETRY_DELAY')
+
     for request in fred_requests:
         request_name = request.name
-        last_updated_key = {
-            dynamodb_partition_key: {'S':request_name},
-            dynamodb_sort_key: {'S':}
-        }
+        last_updated_day = find_last_updated_day(dynamodb_table=dynamodb_table,
+                                                 partition_key_name=dynamodb_partition_key,
+                                                 partition_key_value=request_name,
+                                                 sort_key_name=dynamodb_sort_key,
+                                                 date_today=date_today,
+                                                 date_format=date_format_param)
+
+        # We are only looking to get a snapshot of the data once per day, so skip the series if we already have today's
+        # data
+        if last_updated_day == date_today:
+            log_msg = LogsLoader.get_log(section='aws_lambda',
+                                         log_name='have_todays_data',
+                                         parameters={'series_name': request_name})
+            logging.info(log_msg)
+            continue
+        elif last_updated_day is None:
+            # Last updated day is None when no day is found to have been updated in the last 2 years. Meaning there
+            observation_start_str = '1776-07-04'
+
+        # We want to get the data after the last updated day
+        observation_start = last_updated_day + timedelta(days=1)
+        observation_start_str = observation_start.strftime(date_format_param)
+
         request_json_data = fred_manager.make_request(api_key=fred_api_key,
                                                       fred_api_request=request,
-                                                      realtime_start=last_updated)
+                                                      observation_start=observation_start_str,
+                                                      max_retries=fred_api_max_retries,
+                                                      retry_delay=fred_api_request_retry_delay)

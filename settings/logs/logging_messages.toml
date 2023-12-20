@@ -40,3 +40,4 @@ missing_config_variable = "Tried to access missing config variable with section 
 parameter_value_not_found = """Failed to find value while retrieving parameter from AWS Parameter Store."""
 parameter_request_http_error = """AWS Parameter Store request HTTP error: '{message}'."""
 parameter_request_other_error = """AWS Parameter Store request non-HTTP error: '{message}'."""
+have_todays_data = """Skipping update for API request '{request_name}' - already have today's data."""

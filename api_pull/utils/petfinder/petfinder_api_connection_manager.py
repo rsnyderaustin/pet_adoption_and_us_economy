@@ -28,9 +28,6 @@ class PetfinderApiConnectionManager:
         self.api_url = api_url
         self.token_url = token_url
 
-    def valid_access_token_exists(self):
-        return self._access_token and self._access_token.token_is_valid()
-
     def generate_access_token(self, api_key, secret_key):
         """
         Generates a new Petfinder access token if necessary, and returns a valid token.
@@ -70,8 +67,6 @@ class PetfinderApiConnectionManager:
                 logging.error(e)
                 continue
 
-            generation_time = time.time()
-
             try:
                 response_data = response.json()
             except json.decoder.JSONDecodeError as json_error:
@@ -79,10 +74,7 @@ class PetfinderApiConnectionManager:
                 logging.error(error_msg)
                 raise json_error
             try:
-                self._handle_access_token(new_token=response_data["access_token"],
-                                          time_of_generation=generation_time,
-                                          expiration=response_data["expires_in"])
-                return self._access_token.access_token
+                return response_data['access_token']
             except KeyError as e:
                 error_msg = str(e)
                 logging.error(error_msg)
@@ -126,7 +118,7 @@ class PetfinderApiConnectionManager:
 
             try:
                 response = requests.get(headers=access_token_header,
-                                        url=url,
+                                        url=self.api_url,
                                         params=parameters)
                 response.raise_for_status()
             except requests.exceptions.RequestException as e:

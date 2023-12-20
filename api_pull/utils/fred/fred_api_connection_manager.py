@@ -81,7 +81,7 @@ class FredApiConnectionManager:
         api_key = key_response['Parameters'][0]['Value']
         return api_key
 
-    def make_request(self, api_key: str, fred_api_request: FredApiRequest, realtime_start, retry_delay, max_retries):
+    def make_request(self, api_key: str, fred_api_request: FredApiRequest, observation_start, retry_delay, max_retries):
         """
         Sends an API request to the FRED API.
         :param path_segments:
@@ -97,7 +97,7 @@ class FredApiConnectionManager:
         params = fred_api_request.parameters
         params['series_id'] = fred_api_request.series_id
         params['api_key'] = api_key
-        params['realtime_start'] = realtime_start
+        params['observation_start'] = observation_start
 
         for tries in range(max_retries):
             if tries >= 1:
