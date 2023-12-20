@@ -22,7 +22,7 @@ class FredApiConnectionManager:
         self.api_url = api_url
 
 
-    def get_last_updated_date(self, series_id) -> Union[datetime, None]:
+    def get_last_updated_date(self, json_data) -> Union[datetime, None]:
         """
         Get the most recent date on which data for the specified FRED API series_id was updated.
 
@@ -36,9 +36,6 @@ class FredApiConnectionManager:
                                      parameters={'valid_series_ids': FredApiConnectionManager.valid_series_ids})
             logging.error(log)
             raise ValueError(log)
-
-        json_data = self.make_request(path_segments='vintage_dates',
-                                      series_id=series_id)
 
         try:
             # Retrieve only dates when the series data was revised or new data added
@@ -76,8 +73,6 @@ class FredApiConnectionManager:
         Pulls the encrypted key parameter from AWS Parameter Store
         :return: API key
         """
-        aws_region = ConfigLoader.get_config(section='aws',
-                                             name='region_name')
         ssm = boto3.client('ssm', aws_region)
         fred_key_parameter = ConfigLoader.get_config(section='aws',
                                                      name='fred_api_key_parameter_name')
@@ -86,7 +81,7 @@ class FredApiConnectionManager:
         api_key = key_response['Parameters'][0]['Value']
         return api_key
 
-    def make_request(self, fred_api_request: FredApiRequest):
+    def make_request(self, api_key: str, fred_api_request: FredApiRequest, realtime_start, retry_delay, max_retries):
         """
         Sends an API request to the FRED API.
         :param path_segments:
@@ -96,19 +91,13 @@ class FredApiConnectionManager:
             successfully receiving data.
         """
 
-        max_retries = ConfigLoader.get_config(section='fred_api',
-                                              name='api_connection_retries')
-        retry_delay = ConfigLoader.get_config(section='fred_api',
-                                              name='api_connection_retry_delay')
+        request_url = self.api_url
 
-        api_key = self.get_api_key()
-
-        request_series_id = fred_api_request.series_id
-        data = {
-            'series_id': request_series_id,
-            'api_key': api_key
-        }
-
+        # Params in the current AWS FRED config is just an empty dict. Placeholder for possible future params
+        params = fred_api_request.parameters
+        params['series_id'] = fred_api_request.series_id
+        params['api_key'] = api_key
+        params['realtime_start'] = realtime_start
 
         for tries in range(max_retries):
             if tries >= 1:
@@ -119,13 +108,13 @@ class FredApiConnectionManager:
                 time.sleep(retry_delay)
             try:
                 response = requests.get(url=request_url,
-                                        data=data)
+                                        params=params)
                 response.raise_for_status()
             except requests.exceptions.RequestException as e:
                 log = LogsLoader.get_log(section='fred_api_manager',
                                          log_name='failed_request',
                                          parameters={
-                                             'series_id': series_id,
+                                             'series_id': fred_api_request.series_id,
                                              'retry': tries,
                                              'details': e
                                          })

@@ -20,6 +20,16 @@ data series are listed below:
 4. CPALTT01USM657N: Consumer Price Index: All Items
 5. DFF: Federal Funds Effective Rate
 
+# AWS
+### Choosing a Database
+As the project currently stands, data will only be read and written into the database daily. Thus, high throughput
+isn't necessary for a database. An import decision is using a NoSQL or a RDBMS. The primary factors in this decision 
+are cost and access patterns. Serverless RDBMS AWS Aurora seems like a good choice, however at the time of writing, 
+DynamoDB is the best choice as the database will only have to be read and written on once per day, which should keep the
+project within the free tier. Additionally, the access patterns are consistently based on only two keys: by series ID's 
+and dates for FRED, and by animal type and dates for Petfinder. The consistent access patterns around just two keys is 
+ideal for DynamoDB. So, DynamoDB is the database of choice for this project.
+
 # Website
 ### Charting Data
 
