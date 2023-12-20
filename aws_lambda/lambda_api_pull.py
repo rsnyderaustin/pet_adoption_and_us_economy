@@ -187,10 +187,11 @@ def lambda_handler(event, context):
     date_format_param = retrieve_aws_parameter(env_variable_name='DATE_STRING_FORMAT')
 
     for request in pf_requests:
+        # request name is the partition key in the database
         request_name = request.name
         request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                     petfinder_api_request=request)
-        
+
         # Push JSON data to dynamoDB big data table, and update
 
     fred_api_max_retries = retrieve_aws_parameter(env_variable_name='FRED_API_MAX_RETRIES')

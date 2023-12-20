@@ -35,12 +35,13 @@ ideal for DynamoDB. So, DynamoDB is the database of choice for this project.
 
 #### FRED
 #### PetFinder
-animal_type (PartitionKey) | MM/DD/YYYY (SortKey) | num_adoptable_animals_published
+pk (PartitionKey) | date_sk(SortKey) | attribute1
 ---------------------------------------------------------------------
-all                        | 12/20/2023           | 52
-dog                        | 12/20/2023           | 20
-cat                        | 12/20/2023           | 12
-all                        | 12/19/2023           | 68
+all                        | 12/20/2023           | num_adoptable_animals_published: 52
+dog                        | 12/20/2023           | num_adoptable_animals_published: 20
+cat                        | 12/20/2023           | num_adoptable_animals_published: 12
+UNRATE                     | 12/20/2023           | observation: 3.7
+all                        | 12/19/2023           | num_adoptable_animals_published: 68
 ...
 
 # Website
