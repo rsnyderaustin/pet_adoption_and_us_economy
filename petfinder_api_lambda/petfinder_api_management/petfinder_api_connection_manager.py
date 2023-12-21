@@ -1,15 +1,14 @@
-import json.decoder
-
+from json.decoder import JSONDecodeError
 from aws_lambda_powertools import Logger
 import requests
-import logging
-import time
 from urllib.parse import urljoin
 
 from .petfinder_api_request import PetfinderApiRequest
 
+
 class MaxGenerateAccessTokenTriesError(Exception):
     pass
+
 
 class PetfinderApiConnectionManager:
 
@@ -46,7 +45,7 @@ class PetfinderApiConnectionManager:
                 return e
             try:
                 response_data = response.json()
-            except json.decoder.JSONDecodeError as e:
+            except JSONDecodeError as e:
                 self.logger.error(str(e))
                 return e
             try:
@@ -59,8 +58,7 @@ class PetfinderApiConnectionManager:
 
     def make_request(self, access_token, petfinder_api_request: PetfinderApiRequest, max_tries):
         """
-        Sends a request to Petfinder API. If successful, returns the JSON data from the response.
-        :return: If successful, returns JSON request data. If not successful, raises an error.
+        :return: JSON request data
         """
 
         access_token_header = {
