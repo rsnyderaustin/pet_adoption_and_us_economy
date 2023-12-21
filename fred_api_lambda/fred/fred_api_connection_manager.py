@@ -7,7 +7,6 @@ import requests
 import time
 from urllib.parse import urljoin
 
-from settings import LogsLoader as LogsLoader
 from .fred_api_request import FredApiRequest
 
 class MaxFredDataRequestTriesError(Exception):
@@ -15,8 +14,6 @@ class MaxFredDataRequestTriesError(Exception):
 
 
 class FredApiConnectionManager:
-    # There are plenty other FRED series ID's, but these are the only ones I am currently using
-    valid_series_ids = ['GDP', 'RSXFS', 'UNRATE', 'CPALTT01USM657N', 'DFF']
 
     def __init__(self, api_url):
         self.api_url = api_url
