@@ -198,8 +198,6 @@ def lambda_handler(event, context):
                                                        secret_key=pf_secret_key)
 
     for request in pf_requests:
-        # request name is the partition key in the database
-        request_name = request.name
         request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                     petfinder_api_request=request)
 
@@ -217,7 +215,13 @@ def lambda_handler(event, context):
                                                           observation_start=observation_start_str,
                                                           max_retries=fred_api_max_retries,
                                                           retry_delay=fred_api_request_retry_delay)
+            observations_data = request_json_data['observations']
+            dynamodb_handler.put_fred_data(request_name=request.name,
+                                           data=observations_data)
             for observation in request_json_data['observations']:
+                date = observation['date']
+                value = observation['value']
+                dynamodb_handler.put_
 
         except Exception as e:
             logging.error(str(e))

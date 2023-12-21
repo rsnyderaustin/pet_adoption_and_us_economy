@@ -8,7 +8,7 @@ class DynamoDbHandler:
 
     def __init__(self, table_name, region, partition_key_name, sort_key_name, sort_key_date_format):
         dynamodb_client = boto3.resource('dynamodb', region_name=region)
-        self.dynamodb_table = dynamodb_client.Table(dynamodb_table_name)
+        self.dynamodb_table = dynamodb_client.Table(table_name)
         self.partition_key_name = partition_key_name
         self.sort_key_name = sort_key_name
         self.date_format = sort_key_date_format
@@ -44,3 +44,14 @@ class DynamoDbHandler:
             return last_updated_day_object
         else:
             return None
+
+    def put_fred_data(self, request_name, data, values_attribute_name):
+        new_data = []
+        for observation in data:
+            new_item = {
+                self.partition_key_name: request_name,
+                self.sort_key_name: observation['date'],
+                values_attribute_name: observation['value']
+            }
+            new_data.append(new_item)
+        
