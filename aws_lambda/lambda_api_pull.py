@@ -11,13 +11,14 @@ from urllib3.exceptions import HTTPError
 from api_pull import PetfinderApiConnectionManager as PfManager
 from api_pull import FredApiConnectionManager as FredManager
 from api_pull.utils import PetfinderApiRequest, FredApiRequest
+from dynamodb_handling import get_last_updated_day
 from settings import TomlLogsLoader as LogsLoader
 
 AWS_SESSION_TOKEN = os.environ['AWS_SESSION_TOKEN']
 CACHE_PORT = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 PROJECT_NAME = os.environ['PARAMS_PROJECT_NAME']
 HTTP = urllib3.PoolManager()
-BASE_URL = f'http://localhost:{CACHE_PORT}/systemsmanager/parameters/get?name='
+BASE_PARAM_URL = f'http://localhost:{CACHE_PORT}/systemsmanager/parameters/get?name='
 PETFINDER_LIFECYCLE_NAME = os.environ['PETFINDER_LIFECYCLE_NAME']
 FRED_LIFECYCLE_NAME = os.environ['FRED_LIFECYCLE_NAME']
 
@@ -30,7 +31,7 @@ def retrieve_aws_parameter(env_variable_name, parameter_is_secret=False):
     :return:
     """
     parameter_name = os.environ[env_variable_name].lower()
-    request_url = f'{BASE_URL}%2F{PROJECT_NAME}%2f{parameter_name}/'
+    request_url = f'{BASE_PARAM_URL}%2F{PROJECT_NAME}%2f{parameter_name}/'
 
     if parameter_is_secret:
         headers = {"X-Aws-Parameters-Secrets-Token": os.environ.get(AWS_SESSION_TOKEN)}
@@ -113,45 +114,24 @@ def retrieve_api_request_configs(bucket_name, bucket_key) -> dict:
     return dict_to_return
 
 
-def find_last_updated_day(dynamodb_table, partition_key_name, partition_key_value, sort_key_name, date_format: str) \
-        -> Union[datetime, None]:
-    """
+def last_updated_day_is_today(date_today, last_updated_day):
+    return date_today == last_updated_day
 
-    :param dynamodb_table:
-    :param partition_key_name:
-    :param partition_key_value:
-    :param sort_key_name:
-    :param date_today:
-    :param date_format:
-    :return: The date object of the last updated day in the DynamoDB table, or None if no date is found within 1000 days.
-    """
-    response = dynamodb_table.query(
-        KeyConditionExpression="#pk = :pk AND #sk = :sk",
-        ExpressionAttributeNames={
-            '#pk': partition_key_name,
-            '#sk': sort_key_name
-        },
-        ExpressionAttributeValues={
-            ":pk": {'S': partition_key_value}
-        },
-        # Sort dates in descending order (most recent at the top)
-        ScanIndexForward=False,
-        Limit=1
-    )
-    if response and 'Items' in response:
-        last_item = response['Items'][0]
-        last_updated_day = last_item[sort_key_name]
-        last_updated_day_object = datetime.strptime(last_updated_day, date_format)
-        return last_updated_day_object
-    else:
-        return None
+
+def no_dates_found_for_dataset(last_updated_day):
+    return last_updated_day is None
+
+def day_after_last_updated_day(last_updated_day, date_format):
+    day_after = last_updated_day + timedelta(days=1)
+    observation_start_str = day_after.strftime(date_format)
+    return observation_start_str
 
 
 # Mandatory entry point for AWS Lambda
 def lambda_handler(event, context):
     # Create the Petfinder API Manager
-    pf_api_url = retrieve_aws_parameter(env_variable_name='Needs updated')
-    pf_access_token_url = retrieve_aws_parameter(env_variable_name='Needs updated')
+    pf_api_url = retrieve_aws_parameter(env_variable_name='PETFINDER_API_URL')
+    pf_access_token_url = retrieve_aws_parameter(env_variable_name='PETFINDER_ACCESS_TOKEN')
     pf_manager = PfManager(api_url=pf_api_url,
                            token_url=pf_access_token_url)
 
@@ -199,34 +179,35 @@ def lambda_handler(event, context):
 
     for request in fred_requests:
         request_name = request.name
-        last_updated_day = find_last_updated_day(dynamodb_table=dynamodb_table,
-                                                 partition_key_name=dynamodb_partition_key,
-                                                 partition_key_value=request_name,
-                                                 sort_key_name=dynamodb_sort_key,
-                                                 date_format=date_format_param)
-
-        # We are only looking to get a snapshot of the data once per day, so skip the series if we already have today's
-        # data
-        if last_updated_day == date_today:
+        last_updated_day = get_last_updated_day(dynamodb_table=dynamodb_table,
+                                                partition_key_name=dynamodb_partition_key,
+                                                partition_key_value=request_name,
+                                                sort_key_name=dynamodb_sort_key,
+                                                date_format=date_format_param)
+        # Skip the series if we already have today's data
+        if last_updated_day_is_today(last_updated_day, date_today):
             log_msg = LogsLoader.get_log(section='aws_lambda',
                                          log_name='have_todays_data',
                                          parameters={'series_name': request_name})
             logging.info(log_msg)
             continue
-        elif last_updated_day is None:
-            # Last updated day is None when no day is found to have been updated in the last 2 years. Meaning there
-            observation_start_str = '1776-07-04'
+        elif no_dates_found_for_dataset(last_updated_day):
+            log_msg = LogsLoader.get_log(section='aws_lambda',
+                                         log_name='no_dynamodb_data_found',
+                                         parameters={'series_name': request_name})
+            logging.info(log_msg)
+            # Set default observation start to Jan 1st, 2000 - this will change once it's determined how far back
+            # Petfinder data goes
+            observation_start_str = '2000-01-01'
         else:
-            # We are looking for the data after the last updated date
-            observation_start = last_updated_day + timedelta(days=1)
-            observation_start_str = observation_start.strftime(date_format_param)
+            observation_start_str = day_after_last_updated_day(last_updated_day, date_format_param)
         try:
             request_json_data = fred_manager.make_request(api_key=fred_api_key,
                                                           fred_api_request=request,
                                                           observation_start=observation_start_str,
                                                           max_retries=fred_api_max_retries,
                                                           retry_delay=fred_api_request_retry_delay)
+            for observation in request_json_data['observations']
         except Exception as e:
             logging.error(str(e))
             continue
-

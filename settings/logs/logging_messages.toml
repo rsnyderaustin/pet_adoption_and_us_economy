@@ -41,3 +41,4 @@ parameter_value_not_found = """Failed to find value while retrieving parameter f
 parameter_request_http_error = """AWS Parameter Store request HTTP error: '{message}'."""
 parameter_request_other_error = """AWS Parameter Store request non-HTTP error: '{message}'."""
 have_todays_data = """Skipping update for API request '{request_name}' - already have today's data."""
+no_dynamodb_data_found = """No DynamoDB data found for API request '{request_name}' - importing all data."""
