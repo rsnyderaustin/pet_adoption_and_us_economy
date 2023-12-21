@@ -1,12 +1,12 @@
 import boto3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from typing import Union
 
 
 class DynamoDbHandler:
 
-    def __init__(self, dynamodb_table_name, region, partition_key_name, sort_key_name, sort_key_date_format):
+    def __init__(self, table_name, region, partition_key_name, sort_key_name, sort_key_date_format):
         dynamodb_client = boto3.resource('dynamodb', region_name=region)
         self.dynamodb_table = dynamodb_client.Table(dynamodb_table_name)
         self.partition_key_name = partition_key_name

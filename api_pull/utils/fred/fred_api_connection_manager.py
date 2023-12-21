@@ -21,21 +21,13 @@ class FredApiConnectionManager:
     def __init__(self, api_url):
         self.api_url = api_url
 
-
     def get_last_updated_date(self, json_data) -> Union[datetime, None]:
         """
         Get the most recent date on which data for the specified FRED API series_id was updated.
 
-        :param series_id: A FRED API series_id.
         :return: A datetime object representing the most recent update date for the specified series_id, or None if no dates
             are found.
         """
-        if not self._is_valid_series_id(series_id=series_id):
-            log = LogsLoader.get_log(section='fred_api_manager',
-                                     log_name='invalid_series_id',
-                                     parameters={'valid_series_ids': FredApiConnectionManager.valid_series_ids})
-            logging.error(log)
-            raise ValueError(log)
 
         try:
             # Retrieve only dates when the series data was revised or new data added
@@ -66,20 +58,6 @@ class FredApiConnectionManager:
 
         last_date = max(datetime_dates)
         return last_date
-
-    @staticmethod
-    def get_api_key():
-        """
-        Pulls the encrypted key parameter from AWS Parameter Store
-        :return: API key
-        """
-        ssm = boto3.client('ssm', aws_region)
-        fred_key_parameter = ConfigLoader.get_config(section='aws',
-                                                     name='fred_api_key_parameter_name')
-        key_response = ssm.get_parameters(Names=[fred_key_parameter],
-                                          WithDecryption=True)
-        api_key = key_response['Parameters'][0]['Value']
-        return api_key
 
     def make_request(self, api_key: str, fred_api_request: FredApiRequest, observation_start, retry_delay, max_retries):
         """
@@ -124,7 +102,7 @@ class FredApiConnectionManager:
                 json_data = response.json()
                 return json_data
             except requests.exceptions.JSONDecodeError as json_error:
-                logging.error(json_error)
+                logging.error(str(json_error))
 
             tries += 1
 
