@@ -8,12 +8,6 @@ from typing import Union
 import urllib3
 from urllib3.exceptions import HTTPError
 
-from api_pull import PetfinderApiConnectionManager as PfManager
-from api_pull import FredApiConnectionManager as FredManager
-from api_pull.utils import PetfinderApiRequest, FredApiRequest
-from .dynamodb_handler import DynamoDbHandler
-from settings import TomlLogsLoader as LogsLoader
-
 def retrieve_aws_parameter(env_variable_name, parameter_is_secret=False):
     """
     :param env_variable_name: The name of the environment variable storing the parameter name. A bit confusing,
@@ -111,14 +105,6 @@ http = urllib3.PoolManager()
 base_param_url = f'http://localhost:{cache_port}/systemsmanager/parameters/get?name='
 petfinder_lifecycle_name = os.environ['PETFINDER_LIFECYCLE_NAME']
 fred_lifecycle_name = os.environ['FRED_LIFECYCLE_NAME']
-
-pf_api_url = retrieve_aws_parameter(env_variable_name='PETFINDER_API_URL')
-pf_access_token_url = retrieve_aws_parameter(env_variable_name='PETFINDER_ACCESS_TOKEN_URL')
-pf_manager = PfManager(api_url=pf_api_url,
-                       token_url=pf_access_token_url)
-
-pf_api_key = retrieve_aws_parameter(env_variable_name='PETFINDER_API_KEY')
-pf_secret_key = retrieve_aws_parameter(env_variable_name='PETFINDER_SECRET_KEY')
 
 fred_api_url = retrieve_aws_parameter(env_variable_name='FRED_API_URL')
 fred_manager = FredManager(api_url=fred_api_url)

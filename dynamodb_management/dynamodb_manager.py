@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Union
 
 
-class DynamoDbHandler:
+class DynamoDbManager:
 
     def __init__(self, table_name, region, partition_key_name, sort_key_name, sort_key_date_format):
         dynamodb_client = boto3.resource('dynamodb', region_name=region)
@@ -14,16 +14,6 @@ class DynamoDbHandler:
         self.date_format = sort_key_date_format
 
     def get_last_updated_day(self, partition_key_value) -> Union[datetime, None]:
-        """
-
-        :param dynamodb_table:
-        :param partition_key_name:
-        :param partition_key_value:
-        :param sort_key_name:
-        :param date_today:
-        :param date_format:
-        :return: The date object of the last updated day in the DynamoDB table, or None if no date is found within 1000 days.
-        """
         response = self.dynamodb_table.query(
             KeyConditionExpression="#pk = :pk AND #sk = :sk",
             ExpressionAttributeNames={
@@ -54,4 +44,4 @@ class DynamoDbHandler:
                 values_attribute_name: observation['value']
             }
             new_data.append(new_item)
-        
+
