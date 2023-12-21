@@ -60,9 +60,9 @@ def retrieve_api_request_configs(bucket_name, bucket_key) -> dict:
     Returns a dict formatted:
         {
 
-        'petfinder': [petfinder_api_requests],
+        'petfinder_api_management': [petfinder_api_requests],
 
-        'fred': [fred_api_requests]
+        'fred_api_management': [fred_api_requests]
 
         }
     """
