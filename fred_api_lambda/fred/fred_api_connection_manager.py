@@ -7,7 +7,7 @@ import requests
 import time
 from urllib.parse import urljoin
 
-from settings import ConfigLoader as ConfigLoader, LogsLoader as LogsLoader
+from settings import LogsLoader as LogsLoader
 from .fred_api_request import FredApiRequest
 
 class MaxFredDataRequestTriesError(Exception):
