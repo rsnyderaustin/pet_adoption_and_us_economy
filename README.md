@@ -1,5 +1,10 @@
 ### Development Notes
 DynamoDB Pricing: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ProvisionedThroughput.html#ItemSizeCalculations.Reads
+
+Read and write units are rounded up to 4 KB increments per item. Thus, storing individual numbers for each day of the 
+month like I was previously planning is extremely inefficient. Instead, items should be stored by month, with an 
+attribute storing the entire month's data as a JSON.
+
 Using AWS Parameter Store for AWS and API keys
     Add Parameter Store and Secrets Manager Lambda Extension after Lambda program is completed
     https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html
