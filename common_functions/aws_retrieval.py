@@ -49,33 +49,9 @@ def retrieve_aws_parameter(env_variable_name, parameter_is_secret=False):
 
     return value
 
-def get_petfinder_configs() ->
-
-def retrieve_api_request_configs(which_api: str, bucket_name, bucket_key) -> dict:
-    """
-    Returns a dict formatted:
-        {
-
-        'petfinder_api_management': [petfinder_api_requests],
-
-        'fred_api_management': [fred_api_requests]
-
-        }
-    :param which_api: Which of 'petfinder' or 'fred' configs to return
-    """
-    # Retrieve file from S3
-    s3_client = boto3.client('s3')
-    response = s3_client.get_object(Bucket=bucket_name,
-                                    Key=bucket_key)
-
-    config_data = json.loads(response['Body'].read().decode('utf-8'))
-
-    which_api = which_api.lower()
-    if which_api in 'petfinder':
-        petfinder_lifecycle_name = os.environ['PETFINDER_LIFECYCLE_NAME']
-        pf_request_configs = config_data[petfinder_lifecycle_name]
-    elif which_api in 'fred':
-        fred_request_configs = config_data[fred_lifecycle_name]
+def _create_pf_requests(config_data):
+    petfinder_lifecycle_name = os.environ['PETFINDER_LIFECYCLE_NAME']
+    pf_request_configs = config_data[petfinder_lifecycle_name]
 
     pf_requests = []
     for api_request in pf_request_configs:
@@ -86,6 +62,10 @@ def retrieve_api_request_configs(which_api: str, bucket_name, bucket_key) -> dic
                                           category=request_category,
                                           parameters=request_params)
         pf_requests.append(new_request)
+    return pf_requests
+
+def _create_fred_requests(config_data):
+    fred_request_configs = config_data[fred_lifecycle_name]
 
     fred_requests = []
     for api_request in fred_request_configs:
@@ -96,10 +76,20 @@ def retrieve_api_request_configs(which_api: str, bucket_name, bucket_key) -> dic
                                      series_id=request_series_id,
                                      parameters=request_parameters)
         fred_requests.append(new_request)
+    return fred_requests
 
-    dict_to_return = {
-        petfinder_lifecycle_name: pf_requests,
-        fred_lifecycle_name: fred_requests
-    }
+def retrieve_api_request_configs(which_api: str, bucket_name, bucket_key) -> list:
+    # Retrieve file from S3
+    s3_client = boto3.client('s3')
+    response = s3_client.get_object(Bucket=bucket_name,
+                                    Key=bucket_key)
 
-    return dict_to_return
+    config_data = json.loads(response['Body'].read().decode('utf-8'))
+
+    which_api = which_api.lower()
+    if which_api in 'petfinder':
+        pf_requests = _create_pf_requests(config_data=config_data)
+        return pf_requests
+    elif which_api in 'fred':
+        fred_requests = _create_fred_requests(config_data=config_data)
+        return fred_requests
