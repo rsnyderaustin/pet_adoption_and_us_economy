@@ -13,7 +13,7 @@ class DynamoDbManager:
         self.partition_key_name = partition_key_name
         self.sort_key_name = sort_key_name
 
-    def get_last_updated_day(self, partition_key_value, days_attribute_name) -> Union[datetime, None]:
+    def get_last_updated_day(self, partition_key_value, values_attribute_name) -> Union[datetime, None]:
         response = self.dynamodb_table.query(
             KeyConditionExpression="#pk = :pk AND #sk = :sk",
             ExpressionAttributeNames={
@@ -29,7 +29,7 @@ class DynamoDbManager:
         )
         if response and 'Items' in response:
             last_item = response['Items'][0]
-            last_month_data = last_item[days_attribute_name]
+            last_month_data = last_item[values_attribute_name]
             json_data = json.loads(last_month_data)
 
             dates = [datetime.strptime(date_str, '%Y-%m-%d') for date_str in json_data.keys()]
