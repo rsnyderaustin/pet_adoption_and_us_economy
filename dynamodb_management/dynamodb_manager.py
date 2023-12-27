@@ -1,19 +1,19 @@
 import boto3
-from datetime import datetime, timedelta
+from datetime import datetime
+import json
 
 from typing import Union
 
 
 class DynamoDbManager:
 
-    def __init__(self, table_name, region, partition_key_name, sort_key_name, sort_key_date_format):
+    def __init__(self, table_name, region, partition_key_name, sort_key_name):
         dynamodb_client = boto3.resource('dynamodb', region_name=region)
         self.dynamodb_table = dynamodb_client.Table(table_name)
         self.partition_key_name = partition_key_name
         self.sort_key_name = sort_key_name
-        self.date_format = sort_key_date_format
 
-    def get_last_updated_day(self, partition_key_value) -> Union[datetime, None]:
+    def get_last_updated_day(self, partition_key_value, days_attribute_name) -> Union[datetime, None]:
         response = self.dynamodb_table.query(
             KeyConditionExpression="#pk = :pk AND #sk = :sk",
             ExpressionAttributeNames={
@@ -29,9 +29,13 @@ class DynamoDbManager:
         )
         if response and 'Items' in response:
             last_item = response['Items'][0]
-            last_updated_day = last_item[self.sort_key_name]
-            last_updated_day_object = datetime.strptime(last_updated_day, self.date_format)
-            return last_updated_day_object
+            last_month_data = last_item[days_attribute_name]
+            json_data = json.loads(last_month_data)
+
+            dates = [datetime.strptime(date_str, '%Y-%m-%d') for date_str in json_data.keys()]
+            latest_date = max(dates)
+
+            return latest_date
         else:
             return None
 

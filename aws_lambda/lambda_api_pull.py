@@ -8,6 +8,9 @@ from typing import Union
 import urllib3
 from urllib3.exceptions import HTTPError
 
+from aws_lambda_powertools import Logger
+
+
 def retrieve_aws_parameter(env_variable_name, parameter_is_secret=False):
     """
     :param env_variable_name: The name of the environment variable storing the parameter name. A bit confusing,
@@ -24,30 +27,13 @@ def retrieve_aws_parameter(env_variable_name, parameter_is_secret=False):
         response = http.request("GET", request_url, headers=headers)
     else:
         response = http.request("GET", request_url)
-    try:
-        response.raise_for_status()
-    except HTTPError as e:
-        error_msg = LogsLoader.get_log(section='aws_lambda',
-                                       log_name='parameter_request_http_error',
-                                       parameters={'message': e})
-        logging.error(error_msg)
-        raise e
-    except Exception as e:
-        error_msg = LogsLoader.get_log(section='aws_lambda',
-                                       log_name='parameter_request_other_error',
-                                       parameters={'message': e})
-        logging.error(error_msg)
-        raise e
 
-    try:
-        value = response['Parameters'][0]['Value']
-    except KeyError:
-        error_msg = LogsLoader.get_log(section='aws_lambda',
-                                       log_name='parameter_value_not_found')
-        logging.error(error_msg)
-        raise KeyError
+    response.raise_for_status()
+
+    value = response['Parameters'][0]['Value']
 
     return value
+
 
 def retrieve_api_request_configs(bucket_name, bucket_key) -> dict:
     """
