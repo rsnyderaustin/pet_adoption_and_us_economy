@@ -56,7 +56,7 @@ class PetfinderApiConnectionManager:
         self.logger.error(f"Max number of tries ({max_tries}) reached when generating Petfinder access token.")
         raise MaxGenerateAccessTokenTriesError
 
-    def make_request(self, access_token, petfinder_api_request: PetfinderApiRequest, max_tries):
+    def make_request(self, access_token, petfinder_api_request: PetfinderApiRequest, retry_seconds):
         """
         :return: JSON request data
         """

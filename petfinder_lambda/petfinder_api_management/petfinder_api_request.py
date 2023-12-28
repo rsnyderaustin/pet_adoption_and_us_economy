@@ -8,3 +8,6 @@ class PetfinderApiRequest:
 
         self.category = category
         self.parameters = parameters
+
+    def add_parameter(self, name, value):
+        self.parameters[name] = value

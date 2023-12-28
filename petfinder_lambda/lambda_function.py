@@ -19,25 +19,36 @@ http = urllib3.PoolManager()
 aws_session_token = os.environ['AWS_SESSION_TOKEN']
 aws_region = os.environ['AWS_REGION']
 cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
-env = os.environ['ENV']
 project_name = os.environ['FRED_PROJECT_NAME']
 
 
 def retrieve_parameter_values(parameter_name):
     base_param_url = f'http://localhost:{cache_port}/systemsmanager/parameters/get?name='
-    parameter_request_url = f'{base_param_url}%2F{env}%2f{project_name}/{parameter_name}'
+    parameter_request_url = f'{base_param_url}%2f{project_name}%2f{parameter_name}'
     url = urljoin(base=base_param_url, url=parameter_request_url)
 
-    param_secret_header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
+    header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
 
-    logger.info(f"Retrieving FRED config values from extension '{parameter_request_url}'.")
-    response = http.request("GET", url, headers=param_secret_header)
+    logger.info(f"Retrieving Petfinder AWS Parameter values from extension '{parameter_request_url}'.")
+    response = http.request("GET", url, headers=header)
     json_data = json.loads(response.data)
 
     return json_data
 
+def retrieve_secret_value(secret_name):
+    base_secret_url = f'http://localhost:{cache_port}/secretsmanager/get?secretId='
+    secret_request_url = f'{base_secret_url}%2F{project_name}%2f{secret_name}'
+    url = urljoin(base=base_secret_url, url=secret_request_url)
 
-def determine_after_parameter(last_updated_day) -> datetime:
+    header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
+
+    logger.info(f"Retrieving Petfinder AWS Secret value from extension '{secret_request_url}'.")
+    response = http.request("GET", url, headers=header)
+    secret_value = response.data.decode('utf-8')
+    return secret_value
+
+
+def determine_after_parameter() -> str:
 
 
 
@@ -69,25 +80,22 @@ def lambda_handler(event, context):
     pf_manager = PfManager(api_url=config_values['pf_api_url'],
                            token_url=config_values['pf_token_url'])
 
-    api_key = config_values['pf_api_key']
-    secret_key = config_values['pf_secret_key']
-    retry_seconds = config_values['pf_retry_seconds']
-    access_token = PfManager.generate_access_token(api_key=api_key,
-                                                   secret_key=secret_key,
-                                                   retry_seconds=retry_seconds)
+    pf_access_token = retrieve_secret_value(secret_name='pf_access_token')
 
     for request in pf_requests:
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
                                                                  values_attribute_name=config_values['db_pf_values_attribute_name'])
-        observation_start_str = determine_observation_start(last_updated_day=last_updated_day)
+        after_param = determine_after_parameter(last_updated_day=last_updated_day)
+        extra_params = {
+            'after': after_param
+        }
+        request.add_parameter(name=)
 
-        if not observation_start_str:
-            continue
         try:
-            request_json_data = pf_manager.make_request(api_key=config_values['pf_api_key'],
-                                                          pf_api_request=request,
-                                                          observation_start=observation_start_str,
-                                                          retry_seconds=config_values['pf_retry_seconds'])
+            request_json_data = pf_manager.make_request(access_token=pf_access_token,
+                                                        petfinder_api_request=request,
+                                                        extra_parameters=extra_params,
+                                                        retry_seconds=config_values['pf_retry_seconds'])
             observations_data = request_json_data['observations']
             dynamodb_manager.put_pf_data(request_name=request.name,
                                            data=observations_data,
