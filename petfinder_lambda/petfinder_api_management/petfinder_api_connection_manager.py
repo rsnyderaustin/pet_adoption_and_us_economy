@@ -22,7 +22,7 @@ class PetfinderApiConnectionManager:
         self.token_url = token_url
         self.logger = Logger(service="petfinder_api_connection_manager")
 
-    def generate_access_token(self, api_key, secret_key, max_tries):
+    def generate_access_token(self, api_key, secret_key, retry_seconds):
         """
         Generates a new Petfinder access token if necessary, and returns a valid token.
         :return: Petfinder API access token.
@@ -33,7 +33,7 @@ class PetfinderApiConnectionManager:
             'client_id': api_key,
             'client_secret': secret_key
         }
-
+        max_tries = len(retry_seconds) - 1
         for tries in range(max_tries):
             if tries >= 1:
                 self.logger.info(f"Retry number {tries} for generating a Petfinder access token.")

@@ -1,7 +1,7 @@
-import boto3
 from datetime import datetime
 import json
 import os
+import requests
 from typing import Union
 import urllib3
 from urllib.parse import urljoin
@@ -46,9 +46,9 @@ def determine_observation_start(last_updated_day: datetime) -> Union[str, None]:
         return observation_start_str
 
 
-def create_fred_requests(raw_requests_json) -> list[FredRequest]:
+def create_fred_requests(requests_json) -> list[FredRequest]:
     fred_requests = []
-    for request_name, request_values in raw_requests_json.items():
+    for request_name, request_values in requests_json.items():
         request_series_id = request_values['series_id']
         request_params = request_values.get('parameters', {})
         new_request = FredRequest(name=request_name,
@@ -63,8 +63,8 @@ def lambda_handler(event, context):
     config_values = json.loads(raw_config_values)
 
     raw_fred_requests = retrieve_parameter_values(parameter_name='fred_requests')
-    fred_request_json = json.loads(raw_fred_requests)
-    fred_requests = create_fred_requests(raw_requests_json=fred_request_json)
+    fred_requests_json = json.loads(raw_fred_requests)
+    fred_requests = create_fred_requests(requests_json=fred_requests_json)
 
     dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
                                        region=config_values['aws_region'],
@@ -77,6 +77,7 @@ def lambda_handler(event, context):
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
                                                                  values_attribute_name=config_values['db_fred_values_attribute_name'])
         observation_start_str = determine_observation_start(last_updated_day=last_updated_day)
+
         if not observation_start_str:
             continue
         try:
@@ -88,6 +89,6 @@ def lambda_handler(event, context):
             dynamodb_manager.put_fred_data(request_name=request.name,
                                            data=observations_data,
                                            values_attribute_name=config_values['db_fred_values_attribute_name'])
-        except Exception as e:
+        except requests.exceptions.JSONDecodeError as e:
             logger.error(str(e))
             continue

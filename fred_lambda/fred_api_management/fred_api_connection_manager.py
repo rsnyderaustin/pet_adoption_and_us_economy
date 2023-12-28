@@ -18,7 +18,7 @@ class FredApiConnectionManager:
         self.api_url = api_url
         self.logger = Logger(service="FredApiConnectionManager")
 
-    def make_request(self, api_key: str, fred_api_request: FredApiRequest, observation_start, retry_seconds: list):
+    def make_request(self, fred_api_request: FredApiRequest, api_key: str,  observation_start: str, retry_seconds: list[int]):
 
         request_url = self.api_url
 
@@ -28,27 +28,37 @@ class FredApiConnectionManager:
         params['api_key'] = api_key
         params['observation_start'] = observation_start
 
-        tries = 0
-        max_tries = len(retry_seconds)
-        while tries < max_tries:
+        max_tries = len(retry_seconds) - 1
+        for tries in range(max_tries):
             if tries >= 1:
-                self.logger.info(f"FRED API request retry number {tries}.")
+                self.logger.info(f"Beginning FRED API request retry number {tries} for series {fred_api_request.series_id}.")
+                time.sleep(retry_seconds[tries])
+
             try:
                 response = requests.get(url=request_url,
                                         params=params)
                 response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                self.logger.error(f"FRED API failed request for series ID '{fred_api_request.series_id}.\nDetails:{e}")
+            except requests.RequestException as error:
+                self.logger.error(f"FRED API failed request for series ID '{fred_api_request.series_id}.\nDetails:{str(error}")
+                if tries == max_tries:
+                    self.logger.error(f"Reached last API request try. Exception raised when decoding JSON.\nExiting this "
+                                      f"API request.")
+                    raise error
                 continue
+            self.logger.info(f"FRED API successful request for series ID '{fred_api_request.series_id}'.")
+
             try:
-                self.logger.info(f"FRED API successful request for series ID '{fred_api_request.series_id}'.")
                 json_data = response.json()
                 return json_data
-            except requests.exceptions.JSONDecodeError as json_error:
-                self.logger.info(f"Error when attempting to decode JSON.\nDetails: {json_error}")
-
-            time.sleep(retry_seconds[tries])
-            tries += 1
+            except requests.exceptions.JSONDecodeError as error:
+                if tries == max_tries:
+                    self.logger.error(
+                        f"Reached last API request try. Exception raised when decoding JSON.\nDetails: {str(error)}\n"
+                        f"Exiting this "
+                        f"API request.")
+                    raise error
+                else:
+                    self.logger.error(f"Error when attempting to decode JSON.\nDetails: {str(error)}")
 
         # Out of the for loop - this is reached if no data is successfully received
         self.logger.error("Max request attempts reached.")

@@ -3,11 +3,12 @@ DynamoDB Pricing: https://docs.aws.amazon.com/amazondynamodb/latest/developergui
 
 Read and write units are rounded up to 4 KB increments per item. Thus, storing individual numbers for each day of the 
 month like I was previously planning is extremely inefficient. Instead, items should be stored by month, with an 
-attribute storing the entire month's data as a JSON.
+attribute storing the month's data as a JSON formatted {date:value}.
 
 Using AWS Parameter Store for AWS and API keys
     Add Parameter Store and Secrets Manager Lambda Extension after Lambda program is completed
     https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html
+
 Charts to display:
 Number of pets published to adoption compared to each of 5 different tags
 
@@ -16,38 +17,28 @@ Number of pets published to adoption compared to each of 5 different tags
 
 
 ### FRED API
-Unlike the Petfinder API, the current simplicity of our API calls to the FRED API don't require the storage of 
-any API request configs. API requests are simply made by sequentially requesting data for each valid series ID.
+Data is updated from the day after the last update through the 'observation_start' parameter in order to account for any 
+possible outages on previous days. API requests are simply made by sequentially requesting data for each valid series ID.
 In the FRED API, our data is requested via 'series id'. The valid series ID's and their corresponding
 data series are listed below:
-1. GDP: Gross Domestic Product
-2. RSXFS: Advance Retail Sales
-3. UNRATE: Unemployment Rate
-4. CPALTT01USM657N: Consumer Price Index: All Items
-5. DFF: Federal Funds Effective Rate
+1. GDP: Gross Domestic Product - Updated Quarterly
+2. RSXFS: Advance Retail Sales - Updated Monthly
+3. UNRATE: Unemployment Rate - Updated Monthly
+4. CPALTT01USM657N: Consumer Price Index: All Items - Updated Monthly
+5. DFF: Federal Funds Effective Rate - Updated Daily
 
 # AWS
 ### Choosing a Database
 As the project currently stands, data will only be read and written into the database daily. Thus, high throughput
-isn't necessary for a database. An import decision is using a NoSQL or a RDBMS. The primary factors in this decision 
-are cost and access patterns. Serverless RDBMS AWS Aurora seems like a good choice, however at the time of writing, 
-DynamoDB is the best choice as the database will only have to be read and written on once per day, which should keep the
+isn't necessary for a database. An important decision is using a NoSQL or a RDBMS. The primary factors in this decision 
+are cost and conformity to our access patterns. DynamoDB is the best choice as the database will only have to be read and 
+written on once per day, which should keep the
 project within the free tier. Additionally, the access patterns are consistently based on only two keys: by series ID's 
 and dates for FRED, and by animal type and dates for Petfinder. The consistent access patterns around just two keys is 
 ideal for DynamoDB. So, DynamoDB is the database of choice for this project.
 
 ### Database Format
-
-#### FRED
-#### PetFinder
-pk (PartitionKey) | date_sk(SortKey) | attribute1
----------------------------------------------------------------------
-all                        | 12/20/2023           | num_adoptable_animals_published: 52
-dog                        | 12/20/2023           | num_adoptable_animals_published: 20
-cat                        | 12/20/2023           | num_adoptable_animals_published: 12
-UNRATE                     | 12/20/2023           | observation: 3.7
-all                        | 12/19/2023           | num_adoptable_animals_published: 68
-...
+-- Need to insert link to database example image --
 
 # Website
 ### Charting Data
