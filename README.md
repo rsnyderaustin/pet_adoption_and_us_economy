@@ -1,6 +1,8 @@
 ### Development Notes
 DynamoDB Pricing: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ProvisionedThroughput.html#ItemSizeCalculations.Reads
 
+Packing Python for CI/CD: https://towardsdatascience.com/create-your-custom-python-package-that-you-can-pip-install-from-your-git-repository-f90465867893
+
 Read and write units are rounded up to 4 KB increments per item. Thus, storing individual numbers for each day of the 
 month like I was previously planning is extremely inefficient. Instead, items should be stored by month, with an 
 attribute storing the month's data as a JSON formatted {date:value}.
