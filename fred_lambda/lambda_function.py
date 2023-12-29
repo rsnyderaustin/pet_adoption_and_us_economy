@@ -4,9 +4,9 @@ import os
 import requests
 from typing import Union
 import urllib3
-from urllib.parse import urljoin
 
 from aws_lambda_powertools import Logger
+from pet_adoption_and_us_economy.
 
 from dynamodb_management import DynamoDbManager
 from .fred_api_management import FredApiConnectionManager as FredManager, FredApiRequest as FredRequest
@@ -21,20 +21,6 @@ aws_region = os.environ['AWS_REGION']
 cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 env = os.environ['ENV']
 project_name = os.environ['FRED_PROJECT_NAME']
-
-
-def retrieve_parameter_values(parameter_name):
-    base_param_url = f'http://localhost:{cache_port}/systemsmanager/parameters/get?name='
-    parameter_request_url = f'{base_param_url}%2F{env}%2f{project_name}/{parameter_name}'
-    url = urljoin(base=base_param_url, url=parameter_request_url)
-
-    param_secret_header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
-
-    logger.info(f"Retrieving FRED config values from extension '{parameter_request_url}'.")
-    response = http.request("GET", url, headers=param_secret_header)
-    json_data = json.loads(response.data)
-
-    return json_data
 
 
 def determine_observation_start(last_updated_day: datetime) -> Union[str, None]:
