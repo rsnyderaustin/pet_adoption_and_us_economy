@@ -12,6 +12,8 @@ Using AWS Parameter Store for AWS and API keys
 Charts to display:
 Number of pets published to adoption compared to each of 5 different tags
 
+Program runs at 2 AM every day.
+
 ### Petfinder API
 
 

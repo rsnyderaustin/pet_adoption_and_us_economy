@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import requests
@@ -22,7 +22,7 @@ cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 project_name = os.environ['FRED_PROJECT_NAME']
 
 
-def retrieve_parameter_values(parameter_name):
+def retrieve_parameter_values(parameter_name, expect_json=True):
     base_param_url = f'http://localhost:{cache_port}/systemsmanager/parameters/get?name='
     parameter_request_url = f'{base_param_url}%2f{project_name}%2f{parameter_name}'
     url = urljoin(base=base_param_url, url=parameter_request_url)
@@ -31,9 +31,12 @@ def retrieve_parameter_values(parameter_name):
 
     logger.info(f"Retrieving Petfinder AWS Parameter values from extension '{parameter_request_url}'.")
     response = http.request("GET", url, headers=header)
-    json_data = json.loads(response.data)
-
-    return json_data
+    if expect_json:
+        json_data = json.loads(response.data)
+        return json_data
+    else:
+        parameter_value = response.data.decode('utf-8')
+        return parameter_value
 
 def retrieve_secret_value(secret_name):
     base_secret_url = f'http://localhost:{cache_port}/secretsmanager/get?secretId='
@@ -48,9 +51,15 @@ def retrieve_secret_value(secret_name):
     return secret_value
 
 
-def determine_after_parameter() -> str:
-
-
+def determine_after_parameter(last_updated_day: datetime) -> Union[str, None]:
+    today_datetime = datetime.now()
+    if last_updated_day == today_datetime:
+        return None
+    else:
+        next_day = today_datetime + timedelta(days=1)
+        next_day_midnight = next_day.replace(hour=0, minute=0, second=0, microsecond=0)
+        iso_string = next_day_midnight.isoformat()
+        return iso_string
 
 def create_pf_requests(requests_json) -> list[PfRequest]:
     pf_requests = []
@@ -86,15 +95,12 @@ def lambda_handler(event, context):
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
                                                                  values_attribute_name=config_values['db_pf_values_attribute_name'])
         after_param = determine_after_parameter(last_updated_day=last_updated_day)
-        extra_params = {
-            'after': after_param
-        }
-        request.add_parameter(name=)
+        request.add_parameter(name='after',
+                              value=after_param)
 
         try:
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                         petfinder_api_request=request,
-                                                        extra_parameters=extra_params,
                                                         retry_seconds=config_values['pf_retry_seconds'])
             observations_data = request_json_data['observations']
             dynamodb_manager.put_pf_data(request_name=request.name,

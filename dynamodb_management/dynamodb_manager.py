@@ -37,15 +37,19 @@ class DynamoDbManager:
 
             return latest_date
         else:
+            # Return None if no data was found for the provided partition key
             return None
 
-    def put_fred_data(self, request_name, data, values_attribute_name):
+    def put_fred_data(self, partition_key_value, data, values_attribute_name):
         new_data = []
         for observation in data:
             new_item = {
-                self.partition_key_name: request_name,
+                self.partition_key_name: partition_key_value,
                 self.sort_key_name: observation['date'],
                 values_attribute_name: observation['value']
             }
             new_data.append(new_item)
+
+    def put_pf_data(self, partition_key_value, values_attribute_name):
+
 
