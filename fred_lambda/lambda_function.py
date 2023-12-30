@@ -6,7 +6,7 @@ from typing import Union
 import urllib3
 
 from aws_lambda_powertools import Logger
-from pet_adoption_and_us_economy.
+from aws_cache_retrieval import AwsVariableRetriever
 
 from dynamodb_management import DynamoDbManager
 from .fred_api_management import FredApiConnectionManager as FredManager, FredApiRequest as FredRequest
