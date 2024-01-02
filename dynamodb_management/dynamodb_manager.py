@@ -40,7 +40,7 @@ class DynamoDbManager:
             # Return None if no data was found for the provided partition key
             return None
 
-    def put_fred_data(self, partition_key_value, data, values_attribute_name):
+    def put_fred_data(self, data, partition_key_value, values_attribute_name):
         new_data = []
         for observation in data:
             new_item = {
@@ -50,6 +50,11 @@ class DynamoDbManager:
             }
             new_data.append(new_item)
 
-    def put_pf_data(self, partition_key_value, values_attribute_name):
+    def put_pf_data(self, data, partition_key_value, values_attribute_name):
+        new_data = []
+        for observation in data:
+            new_item = {
+                self.p
+            }
 
 

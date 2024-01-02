@@ -46,7 +46,8 @@ class FredApiConnectionManager:
                                         params=params)
                 response.raise_for_status()
             except requests.RequestException as error:
-                self.logger.error(f"FRED API failed request for series ID '{fred_api_request.series_id}.\nDetails:{str(error}")
+                self.logger.error(f"FRED API failed request for series ID '{fred_api_request.series_id}.\n"
+                                  f"Details:{str(error)}")
                 if tries == max_tries:
                     self.logger.error(f"Reached last API request try. Exception raised when decoding JSON.\nExiting this "
                                       f"API request.")

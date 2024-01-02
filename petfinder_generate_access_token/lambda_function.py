@@ -24,6 +24,7 @@ aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
 class MaxGenerateAccessTokenTriesError(Exception):
     pass
 
+
 def lambda_handler(event, context):
     """
     Generates a new Petfinder access token if necessary, and returns a valid token.

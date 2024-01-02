@@ -4,10 +4,10 @@ import os
 import requests
 from typing import Union
 import urllib3
-from urllib.parse import urljoin
 
 from aws_lambda_powertools import Logger
 
+from aws_cache_retrieval import AwsVariableRetriever
 from dynamodb_management import DynamoDbManager
 
 from .petfinder_api_management import PetfinderApiConnectionManager as PfManager, PetfinderApiRequest as PfRequest
@@ -21,45 +21,10 @@ aws_region = os.environ['AWS_REGION']
 cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 project_name = os.environ['FRED_PROJECT_NAME']
 
+aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
+                                              project_name=project_name,
+                                              aws_session_token=aws_session_token)
 
-def retrieve_parameter_values(parameter_name, expect_json=True):
-    base_param_url = f'http://localhost:{cache_port}/systemsmanager/parameters/get?name='
-    parameter_request_url = f'{base_param_url}%2f{project_name}%2f{parameter_name}'
-    url = urljoin(base=base_param_url, url=parameter_request_url)
-
-    header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
-
-    logger.info(f"Retrieving Petfinder AWS Parameter values from extension '{parameter_request_url}'.")
-    response = http.request("GET", url, headers=header)
-    if expect_json:
-        json_data = json.loads(response.data)
-        return json_data
-    else:
-        parameter_value = response.data.decode('utf-8')
-        return parameter_value
-
-def retrieve_secret_value(secret_name):
-    base_secret_url = f'http://localhost:{cache_port}/secretsmanager/get?secretId='
-    secret_request_url = f'{base_secret_url}%2F{project_name}%2f{secret_name}'
-    url = urljoin(base=base_secret_url, url=secret_request_url)
-
-    header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
-
-    logger.info(f"Retrieving Petfinder AWS Secret value from extension '{secret_request_url}'.")
-    response = http.request("GET", url, headers=header)
-    secret_value = response.data.decode('utf-8')
-    return secret_value
-
-
-def determine_after_parameter(last_updated_day: datetime) -> Union[str, None]:
-    today_datetime = datetime.now()
-    if last_updated_day == today_datetime:
-        return None
-    else:
-        next_day = today_datetime + timedelta(days=1)
-        next_day_midnight = next_day.replace(hour=0, minute=0, second=0, microsecond=0)
-        iso_string = next_day_midnight.isoformat()
-        return iso_string
 
 def create_pf_requests(requests_json) -> list[PfRequest]:
     pf_requests = []
@@ -75,10 +40,12 @@ def create_pf_requests(requests_json) -> list[PfRequest]:
 
 @logger.inject_lambda_context
 def lambda_handler(event, context):
-    raw_config_values = retrieve_parameter_values(parameter_name='configs')
+    raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
+                                                                        expect_json=True)
     config_values = json.loads(raw_config_values)
 
-    raw_pf_requests = retrieve_parameter_values(parameter_name='pf_requests')
+    raw_pf_requests = aws_variable_retriever.retrieve_parameter_value(parameter_name='pf_requests',
+                                                                      expect_json=True)
     pf_requests_json = json.loads(raw_pf_requests)
     pf_requests = create_pf_requests(requests_json=pf_requests_json)
 
@@ -90,32 +57,28 @@ def lambda_handler(event, context):
     pf_manager = PfManager(api_url=config_values['pf_api_url'],
                            token_url=config_values['pf_token_url'])
 
-    pf_access_token = retrieve_secret_value(secret_name='pf_access_token')
+    pf_access_token = aws_variable_retriever.retrieve_secret_value(secret_name='pf_access_token')
+
+    dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
+                                       region=config_values['aws_region'],
+                                       partition_key_name=config_values['db_partition_key_name'],
+                                       sort_key_name=config_values['db_sort_key_name'])
 
     for request in pf_requests:
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
                                                                  values_attribute_name=config_values['db_pf_values_attribute_name'])
-        after_param = determine_after_parameter(last_updated_day=last_updated_day)
         request.add_parameter(name='after',
-                              value=after_param)
+                              value=last_updated_day)
 
         try:
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                         petfinder_api_request=request,
                                                         retry_seconds=config_values['pf_retry_seconds'])
             observations_data = request_json_data['observations']
-            dynamodb_manager.put_pf_data(request_name=request.name,
-                                           data=observations_data,
-                                           values_attribute_name=config_values['db_pf_values_attribute_name'])
+            partition_key_value = f"pf_{request.name}"
+            dynamodb_manager.put_pf_data(data=observations_data,
+                                         partition_key_value=partition_key_value,
+                                         values_attribute_name=config_values['db_pf_values_attribute_name'])
         except requests.exceptions.JSONDecodeError as e:
             logger.error(str(e))
             continue
-
-def lambda_handler(event, context):
-    pf_access_token = pf_manager.generate_access_token(api_key=pf_api_key,
-                                                       secret_key=pf_secret_key)
-
-    for request in pf_requests:
-        request_json_data = pf_manager.make_request(access_token=pf_access_token,
-                                                    petfinder_api_request=request,
-                                                    max_tries=max_tries)
