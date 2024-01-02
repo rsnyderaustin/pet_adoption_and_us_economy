@@ -50,11 +50,17 @@ class DynamoDbManager:
             }
             new_data.append(new_item)
 
-    def put_pf_data(self, data, partition_key_value, values_attribute_name):
-        new_data = []
-        for observation in data:
-            new_item = {
-                self.p
-            }
+    def put_pf_data(self, data: dict, partition_key_value, values_attribute_name):
+        """
+
+        :param data: Expected format is {date: value}
+        :param partition_key_value:
+        :param values_attribute_name:
+        :return:
+        """
+        item_data = {
+            self.partition_key_name: partition_key_value,
+            self.sort_key_name:
+        }
 
 
