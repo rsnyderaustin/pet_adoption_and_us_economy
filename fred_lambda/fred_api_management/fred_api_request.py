@@ -7,3 +7,6 @@ class FredApiRequest:
         self.series_id = series_id
         self.parameters = parameters
 
+    def add_parameter(self, name, value):
+        self.parameters[name] = value
+

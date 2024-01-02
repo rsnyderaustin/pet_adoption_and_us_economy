@@ -87,6 +87,7 @@ def lambda_handler(event, context):
 
         if not observation_start_str:
             continue
+        request.add_parameter()
         try:
             request_json_data = fred_manager.make_request(api_key=config_values['fred_api_key'],
                                                           fred_api_request=request,
