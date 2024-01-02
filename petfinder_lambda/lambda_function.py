@@ -73,6 +73,7 @@ def create_pf_requests(requests_json) -> list[PfRequest]:
     return pf_requests
 
 
+@logger.inject_lambda_context
 def lambda_handler(event, context):
     raw_config_values = retrieve_parameter_values(parameter_name='configs')
     config_values = json.loads(raw_config_values)

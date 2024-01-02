@@ -3,8 +3,6 @@ import time
 
 import requests
 
-from aws_lambda_powertools import Logger
-
 from .fred_api_request import FredApiRequest
 
 
@@ -16,7 +14,7 @@ class FredApiConnectionManager:
 
     def __init__(self, api_url):
         self.api_url = api_url
-        self.logger = Logger(service="FredApiConnectionManager")
+        self.logger = logging.getLogger(name='FredApiConnectionManager')
 
     def make_request(self, fred_api_request: FredApiRequest, api_key: str,  observation_start: str, retry_seconds: list[int]):
         """

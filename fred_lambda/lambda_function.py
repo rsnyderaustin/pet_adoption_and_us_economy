@@ -59,7 +59,7 @@ def create_fred_requests(requests_json) -> list[FredRequest]:
         fred_requests.append(new_request)
     return fred_requests
 
-
+@logger.inject_lambda_context
 def lambda_handler(event, context):
     raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
                                                                         expect_json=True)
@@ -79,7 +79,8 @@ def lambda_handler(event, context):
 
     default_data_start_date = config_values['default_data_start_date']
     for request in fred_requests:
-        last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
+        partition_key_value = f"fred_{request.name}"
+        last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=partition_key_value,
                                                                  values_attribute_name=config_values['db_fred_values_attribute_name'])
         observation_start_str = determine_observation_start(last_updated_day=last_updated_day,
                                                             default_date=default_data_start_date)
@@ -95,6 +96,7 @@ def lambda_handler(event, context):
             dynamodb_manager.put_fred_data(partition_key_value=request.name,
                                            data=observations_data,
                                            values_attribute_name=config_values['db_fred_values_attribute_name'])
+            logger.info(f"Successfully uploaded data to DynamoDB for request {request.name}.")
         except requests.exceptions.JSONDecodeError as e:
             logger.error(str(e))
             continue

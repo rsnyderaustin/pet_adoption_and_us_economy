@@ -1,5 +1,6 @@
+import logging
 from json.decoder import JSONDecodeError
-from aws_lambda_powertools import Logger
+import time
 import requests
 from urllib.parse import urljoin
 
@@ -20,7 +21,7 @@ class PetfinderApiConnectionManager:
         """
         self.api_url = api_url
         self.token_url = token_url
-        self.logger = Logger(service="petfinder_api_connection_manager")
+        self.logger = logging.getLogger(name="PetfinderApiConnectionManager")
 
     def generate_access_token(self, api_key, secret_key, retry_seconds):
         """
@@ -33,10 +34,13 @@ class PetfinderApiConnectionManager:
             'client_id': api_key,
             'client_secret': secret_key
         }
-        max_tries = len(retry_seconds) - 1
+        # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+        max_tries = len(retry_seconds) + 1
         for tries in range(max_tries):
             if tries >= 1:
                 self.logger.info(f"Retry number {tries} for generating a Petfinder access token.")
+                # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+                time.sleep(retry_seconds[tries - 1])
             try:
                 response = requests.post(url=self.token_url, data=data)
                 response.raise_for_status()
