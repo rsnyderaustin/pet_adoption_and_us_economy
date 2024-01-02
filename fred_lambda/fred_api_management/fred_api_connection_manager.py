@@ -19,7 +19,14 @@ class FredApiConnectionManager:
         self.logger = Logger(service="FredApiConnectionManager")
 
     def make_request(self, fred_api_request: FredApiRequest, api_key: str,  observation_start: str, retry_seconds: list[int]):
+        """
 
+        :param fred_api_request:
+        :param api_key:
+        :param observation_start:
+        :param retry_seconds:
+        :return: Request data in JSON format
+        """
         request_url = self.api_url
 
         # Params in the current AWS FRED config is just an empty dict. Placeholder for possible future params
@@ -28,11 +35,13 @@ class FredApiConnectionManager:
         params['api_key'] = api_key
         params['observation_start'] = observation_start
 
-        max_tries = len(retry_seconds) - 1
+        # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+        max_tries = len(retry_seconds) + 1
         for tries in range(max_tries):
             if tries >= 1:
                 self.logger.info(f"Beginning FRED API request retry number {tries} for series {fred_api_request.series_id}.")
-                time.sleep(retry_seconds[tries])
+                # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+                time.sleep(retry_seconds[tries - 1])
 
             try:
                 response = requests.get(url=request_url,

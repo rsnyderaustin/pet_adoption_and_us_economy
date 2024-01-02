@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import requests
@@ -22,13 +22,29 @@ cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 env = os.environ['ENV']
 project_name = os.environ['FRED_PROJECT_NAME']
 
+aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
+                                              project_name=project_name,
+                                              aws_session_token=aws_session_token)
 
-def determine_observation_start(last_updated_day: datetime) -> Union[str, None]:
+
+def determine_observation_start(last_updated_day: datetime, default_date: str) -> Union[str, None]:
+    """
+
+    :param last_updated_day: datetime object representing the last updated day for the current request
+    :param default_date: The default date for observation start of the current request. Only used when last_updated_day
+        is None, indicating that there is no data for the current request.
+    :return: The default date parameter if last_updated_day is None (indicating no data for the current request),
+        or None if last_updated_day is today's date. Otherwise, returns the string representing the day after the last updated day.
+    """
+    # None value for last_updated_day indicates that there is no data for the current request
+    if last_updated_day is None:
+        return default_date
     today_datetime = datetime.now()
     if last_updated_day == today_datetime:
         return None
     else:
-        observation_start_str = last_updated_day.strftime('%Y-%m-%d')
+        day_after_last_update = last_updated_day + timedelta(days=1)
+        observation_start_str = day_after_last_update.strftime('%Y-%m-%d')
         return observation_start_str
 
 
@@ -45,10 +61,12 @@ def create_fred_requests(requests_json) -> list[FredRequest]:
 
 
 def lambda_handler(event, context):
-    raw_config_values = retrieve_parameter_values(parameter_name='configs')
+    raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
+                                                                        expect_json=True)
     config_values = json.loads(raw_config_values)
 
-    raw_fred_requests = retrieve_parameter_values(parameter_name='fred_requests')
+    raw_fred_requests = aws_variable_retriever.retrieve_parameter_value(parameter_name='fred_requests',
+                                                                        expect_json=True)
     fred_requests_json = json.loads(raw_fred_requests)
     fred_requests = create_fred_requests(requests_json=fred_requests_json)
 
@@ -59,10 +77,12 @@ def lambda_handler(event, context):
 
     fred_manager = FredManager(api_url=config_values['fred_api_url'])
 
+    default_data_start_date = config_values['default_data_start_date']
     for request in fred_requests:
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
                                                                  values_attribute_name=config_values['db_fred_values_attribute_name'])
-        observation_start_str = determine_observation_start(last_updated_day=last_updated_day)
+        observation_start_str = determine_observation_start(last_updated_day=last_updated_day,
+                                                            default_date=default_data_start_date)
 
         if not observation_start_str:
             continue
@@ -72,7 +92,7 @@ def lambda_handler(event, context):
                                                           observation_start=observation_start_str,
                                                           retry_seconds=config_values['fred_retry_seconds'])
             observations_data = request_json_data['observations']
-            dynamodb_manager.put_fred_data(request_name=request.name,
+            dynamodb_manager.put_fred_data(partition_key_value=request.name,
                                            data=observations_data,
                                            values_attribute_name=config_values['db_fred_values_attribute_name'])
         except requests.exceptions.JSONDecodeError as e:
