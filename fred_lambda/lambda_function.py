@@ -87,11 +87,11 @@ def lambda_handler(event, context):
 
         if not observation_start_str:
             continue
-        request.add_parameter()
+        request.add_parameter(name='observation_start',
+                              value=observation_start_str)
         try:
             request_json_data = fred_manager.make_request(api_key=config_values['fred_api_key'],
                                                           fred_api_request=request,
-                                                          observation_start=observation_start_str,
                                                           retry_seconds=config_values['fred_retry_seconds'])
             observations_data = request_json_data['observations']
             dynamodb_manager.put_fred_data(partition_key_value=request.name,
