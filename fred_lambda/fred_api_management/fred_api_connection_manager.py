@@ -61,8 +61,7 @@ class FredApiConnectionManager:
                 if tries == max_tries:
                     self.logger.error(
                         f"Reached last API request try. Exception raised when decoding JSON.\nDetails: {str(error)}\n"
-                        f"Exiting this "
-                        f"API request.")
+                        f"Exiting this API request.")
                     raise error
                 else:
                     self.logger.error(f"Error when attempting to decode JSON.\nDetails: {str(error)}")

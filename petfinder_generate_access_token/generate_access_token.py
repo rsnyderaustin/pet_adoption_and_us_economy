@@ -1,10 +1,12 @@
 from json.decoder import JSONDecodeError
-from aws_lambda_powertools import Logger
-import http
 import json
 import os
 import requests
-from urllib.parse import urljoin
+import time
+
+from aws_lambda_powertools import Logger
+
+from aws_cache_retrieval import AwsVariableRetriever
 
 logger = Logger(service="petfinder_access_token_generator")
 
@@ -14,66 +16,52 @@ aws_region = os.environ['AWS_REGION']
 cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
 project_name = os.environ['FRED_PROJECT_NAME']
 
-
-def retrieve_parameter_values(parameter_name, expect_json=True):
-    base_param_url = f'http://localhost:{cache_port}/systemsmanager/parameters/get?name='
-    parameter_request_url = f'{base_param_url}%2f{project_name}%2f{parameter_name}'
-    url = urljoin(base=base_param_url, url=parameter_request_url)
-
-    header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
-
-    logger.info(f"Retrieving Petfinder AWS Parameter values from extension '{parameter_request_url}'.")
-    response = http.request("GET", url, headers=header)
-    if expect_json:
-        json_data = json.loads(response.data)
-        return json_data
-    else:
-        parameter_value = response.data.decode('utf-8')
-        return parameter_value
-
-def retrieve_secret_value(secret_name, expect_json=True):
-    base_secret_url = f'http://localhost:{cache_port}/secretsmanager/get?secretId='
-    secret_request_url = f'{base_secret_url}%2F{project_name}%2f{secret_name}'
-    url = urljoin(base=base_secret_url, url=secret_request_url)
-
-    header = {"X-Aws-Parameters-Secrets-Token": aws_session_token}
-
-    logger.info(f"Retrieving Petfinder AWS Secret value from extension '{secret_request_url}'.")
-    response = http.request("GET", url, headers=header)
-    secret_value = response.data.decode('utf-8')
-    return secret_value
+aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
+                                              project_name=project_name,
+                                              aws_session_token=aws_session_token)
 
 
+class MaxGenerateAccessTokenTriesError(Exception):
+    pass
 
-"""
-Generates a new Petfinder access token if necessary, and returns a valid token.
-:return: Petfinder API access token.
-"""
+def lambda_handler(event, context):
+    """
+    Generates a new Petfinder access token if necessary, and returns a valid token.
+    :return: Petfinder API access token.
+    """
+    raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
+                                                                        expect_json=True)
+    config_values = json.loads(raw_config_values)
 
-data = {
-    'grant_type': 'client_credentials',
-    'client_id': api_key,
-    'client_secret': secret_key
-}
-max_tries = len(retry_seconds) - 1
-for tries in range(max_tries):
-    if tries >= 1:
-        self.logger.info(f"Retry number {tries} for generating a Petfinder access token.")
-    try:
-        response = requests.post(url=self.token_url, data=data)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        self.logger.error(str(e))
-        return e
-    try:
-        response_data = response.json()
-    except JSONDecodeError as e:
-        self.logger.error(str(e))
-        return e
-    try:
-        return response_data['access_token']
-    except KeyError as e:
-        self.logger.error(str(e))
-        raise e
-self.logger.error(f"Max number of tries ({max_tries}) reached when generating Petfinder access token.")
-raise MaxGenerateAccessTokenTriesError
+    data = {
+        'grant_type': 'client_credentials',
+        'client_id': config_values['petfinder_api_key'],
+        'client_secret': config_values['petfinder_secret_key']
+    }
+    retry_seconds = config_values['petfinder_access_token_retry_seconds']
+    max_tries = len(retry_seconds) + 1
+
+    for tries in range(max_tries):
+        if tries >= 1:
+            logger.info(f"Retry number {tries} for generating a Petfinder access token.")
+            # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+            time.sleep(retry_seconds[tries - 1])
+        try:
+            response = requests.post(url=config_values['petfinder_token_url'],
+                                     data=data)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(str(e))
+            return e
+        try:
+            response_data = response.json()
+        except JSONDecodeError as e:
+            logger.error(str(e))
+            return e
+        try:
+            return response_data['access_token']
+        except KeyError as e:
+            logger.error(str(e))
+            raise e
+    logger.error(f"Max number of tries ({max_tries}) reached when generating Petfinder access token.")
+    raise MaxGenerateAccessTokenTriesError
