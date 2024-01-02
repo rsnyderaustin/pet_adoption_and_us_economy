@@ -10,7 +10,7 @@ from aws_lambda_powertools import Logger
 from aws_cache_retrieval import AwsVariableRetriever
 from dynamodb_management import DynamoDbManager
 
-from .petfinder_api_management import PetfinderApiConnectionManager as PfManager, PetfinderApiRequest as PfRequest
+from petfinder_lambda.petfinder_api_management import PetfinderApiConnectionManager as PfManager, PetfinderApiRequest as PfRequest
 
 logger = Logger(service="petfinder_api_pull")
 
