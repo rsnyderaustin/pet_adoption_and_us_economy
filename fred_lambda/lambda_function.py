@@ -87,6 +87,7 @@ def lambda_handler(event, context):
 
         if not observation_start_str:
             continue
+
         request.add_parameter(name='observation_start',
                               value=observation_start_str)
         try:

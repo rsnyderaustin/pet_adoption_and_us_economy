@@ -67,9 +67,8 @@ def lambda_handler(event, context):
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                         petfinder_api_request=request,
                                                         retry_seconds=config_values['pf_retry_seconds'])
-            observations_data =   request_json_data['observations']
             partition_key_value = f"pf_{request.name}"
-            dynamodb_manager.put_pf_data(data=observations_data,
+            dynamodb_manager.put_pf_data(data=request_json_data,
                                          partition_key_value=partition_key_value,
                                          values_attribute_name=config_values['db_pf_values_attribute_name'])
         except requests.exceptions.JSONDecodeError as e:

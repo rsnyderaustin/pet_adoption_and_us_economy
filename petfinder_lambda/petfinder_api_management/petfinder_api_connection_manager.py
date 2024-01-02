@@ -23,7 +23,7 @@ class PetfinderApiConnectionManager:
         self.access_token = access_token
         self.logger = logging.getLogger(name="PetfinderApiConnectionManager")
 
-    def make_request(self, access_token, petfinder_api_request: PetfinderApiRequest, retry_seconds):
+    def make_request(self, petfinder_api_request: PetfinderApiRequest, access_token, retry_seconds):
         """
         :return: JSON request data
         """
@@ -32,10 +32,7 @@ class PetfinderApiConnectionManager:
             'Authorization': f'Bearer {access_token}'
         }
 
-        category = petfinder_api_request.category
-        urljoin(self.api_url, category)
-
-        parameters = petfinder_api_request.parameters
+        urljoin(self.api_url, petfinder_api_request.category)
 
         max_tries = len(retry_seconds) + 1
         for tries in range(max_tries):
@@ -47,7 +44,7 @@ class PetfinderApiConnectionManager:
             try:
                 response = requests.get(headers=access_token_header,
                                         url=self.api_url,
-                                        params=parameters)
+                                        params=petfinder_api_request.parameters)
                 response.raise_for_status()
             except requests.exceptions.RequestException as e:
                 continue
