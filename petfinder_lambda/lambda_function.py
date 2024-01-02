@@ -1,8 +1,6 @@
-from datetime import datetime, timedelta
 import json
 import os
 import requests
-from typing import Union
 import urllib3
 
 from aws_lambda_powertools import Logger
@@ -48,11 +46,6 @@ def lambda_handler(event, context):
                                                                       expect_json=True)
     pf_requests_json = json.loads(raw_pf_requests)
     pf_requests = create_pf_requests(requests_json=pf_requests_json)
-
-    dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
-                                       region=config_values['aws_region'],
-                                       partition_key_name=config_values['db_partition_key_name'],
-                                       sort_key_name=config_values['db_sort_key_name'])
 
     pf_manager = PfManager(api_url=config_values['pf_api_url'],
                            token_url=config_values['pf_token_url'])
