@@ -17,7 +17,7 @@ class PetfinderApiConnectionManager:
         """
 
         :param api_url: Petfinder API URL
-        :param token_url: Petfinder token generator URL
+        :param access_token: Petfinder access token
         """
         self.api_url = api_url
         self.access_token = access_token
@@ -35,6 +35,7 @@ class PetfinderApiConnectionManager:
             'Authorization': f'Bearer {access_token}'
         }
 
+        # Have to append category to the API URL, per Petfinder API documentation
         api_url = self.format_url_with_category(category=petfinder_api_request.category)
 
         max_tries = len(retry_seconds) + 1
