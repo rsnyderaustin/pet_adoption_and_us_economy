@@ -48,9 +48,15 @@ def create_fred_requests(requests_json) -> list[FredRequest]:
         fred_requests.append(new_request)
     return fred_requests
 
+
 def latest_observation_same_as_last_updated_day(observations_data: dict, last_updated_day: datetime):
     latest_observation = max(observations_data['observations'], key=lambda x: x['date'])
-    latest_date = latest_observation['date']
+    latest_observation_date = latest_observation['date']
+    if latest_observation_date == last_updated_day:
+        return True
+    else:
+        return False
+
 
 @logger.inject_lambda_context
 def lambda_handler(event, context):
@@ -77,12 +83,12 @@ def lambda_handler(event, context):
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=partition_key_value,
                                                                  values_attribute_name=config_values[
                                                                      'db_fred_values_attribute_name'])
+        last_updated_month = last_updated_day.replace(day=1)
 
-        observation_start_str = determine_observation_start(last_updated_day=last_updated_day,
+        # DynamoDB data is stored by year and month. Most efficient and simplest to just get all data for
+        # the latest month and overwrite that data in the table if it needs to be updated
+        observation_start_str = determine_observation_start(last_updated_day=last_updated_month,
                                                             default_date=default_data_start_date)
-
-        if not observation_start_str:
-            continue
 
         request.add_parameter(name='observation_start',
                               value=observation_start_str)
@@ -94,6 +100,7 @@ def lambda_handler(event, context):
             if latest_observation_same_as_last_updated_day(last_updated_day=last_updated_day,
                                                            observations_data=request_json_data):
                 continue
+
             dynamodb_manager.put_fred_data(partition_key_value=request.name,
                                            observations_data=request_json_data['observations'],
                                            values_attribute_name=config_values['db_fred_values_attribute_name'])

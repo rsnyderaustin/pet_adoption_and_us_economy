@@ -101,8 +101,8 @@ def lambda_handler(event, context):
                                                                  values_attribute_name=config_values[
                                                                      'db_pf_values_attribute_name']
                                                                  )
-        # Unlike FRED, Petfinder is expected to always have new data every day, so it is best to just get all data for
-        # the last month and possibly overwrite that value in the database
+        # DynamoDB data is stored by year and month. Most efficient and simplest to just get all data for
+        # the latest month and overwrite that data in the table
         last_updated_month = last_updated_day.replace(day=1)
 
         request.add_parameter(name='after',
