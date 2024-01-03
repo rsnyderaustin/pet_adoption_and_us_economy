@@ -9,20 +9,21 @@ from aws_lambda_powertools import Logger
 from aws_cache_retrieval import AwsVariableRetriever
 from dynamodb_management import DynamoDbManager
 
-from petfinder_lambda.petfinder_api_management import PetfinderApiConnectionManager as PfManager, PetfinderApiRequest as PfRequest
+from petfinder_lambda.petfinder_api_management import PetfinderApiConnectionManager as PfManager, \
+    PetfinderApiRequest as PfRequest
 
 logger = Logger(service="petfinder_api_pull")
 
 http = urllib3.PoolManager()
 
-aws_session_token = os.environ['AWS_SESSION_TOKEN']
-aws_region = os.environ['AWS_REGION']
-cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
-project_name = os.environ['FRED_PROJECT_NAME']
+AWS_SESSION_TOKEN = os.environ['AWS_SESSION_TOKEN']
+AWS_REGION = os.environ['AWS_REGION']
+CACHE_PORT = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
+PROJECT_NAME = os.environ['FRED_PROJECT_NAME']
 
-aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
-                                              project_name=project_name,
-                                              aws_session_token=aws_session_token)
+aws_variable_retriever = AwsVariableRetriever(cache_port=CACHE_PORT,
+                                              project_name=PROJECT_NAME,
+                                              aws_session_token=AWS_SESSION_TOKEN)
 
 
 def create_pf_requests(requests_json) -> list[PfRequest]:
@@ -44,7 +45,7 @@ def count_data_by_date(json_data, pf_date_format):
         date_time = animal['published_at']
         date_match = re.match(r'([^T]+)T', date_time)
         date = date_match.group(1)
-        dates_data[date] 
+        dates_data[date]
     num_animals = len(animals)
     return num_animals
 
@@ -62,24 +63,26 @@ def lambda_handler(event, context):
 
     pf_access_token = aws_variable_retriever.retrieve_secret_value(secret_name='pf_access_token')
 
-    pf_manager = PfManager(api_url=config_values['pf_api_url'],
+    pf_manager = PfManager(api_url=config_values['petfinder_api_url'],
                            access_token=pf_access_token)
 
     dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
-                                       region=config_values['aws_region'],
+                                       region=AWS_REGION,
                                        partition_key_name=config_values['db_partition_key_name'],
                                        sort_key_name=config_values['db_sort_key_name'])
 
     for request in pf_requests:
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
-                                                                 values_attribute_name=config_values['db_pf_values_attribute_name'])
+                                                                 values_attribute_name=config_values[
+                                                                     'db_pf_values_attribute_name']
+                                                                 )
         request.add_parameter(name='after',
                               value=last_updated_day)
 
         try:
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                         petfinder_api_request=request,
-                                                        retry_seconds=config_values['pf_retry_seconds'])
+                                                        retry_seconds=config_values['pf_request_retry_seconds'])
             data_count = count_request_data(json_data=request_json_data)
             partition_key_value = f"pf_{request.name}"
             dynamodb_manager.put_pf_data(data=data_count,

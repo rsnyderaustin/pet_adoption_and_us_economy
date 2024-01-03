@@ -12,8 +12,8 @@ class MaxFredDataRequestTriesError(Exception):
 
 class FredApiConnectionManager:
 
-    def __init__(self, api_url):
-        self.api_url = api_url
+    def __init__(self, observations_api_url):
+        self.observations_api_url = observations_api_url
         self.logger = logging.getLogger(name='FredApiConnectionManager')
 
     def make_request(self, fred_api_request: FredApiRequest, api_key: str,  retry_seconds: list[int]):
@@ -24,8 +24,6 @@ class FredApiConnectionManager:
         :param retry_seconds:
         :return: Request data in JSON format
         """
-        request_url = self.api_url
-
         params = fred_api_request.parameters
         params['series_id'] = fred_api_request.series_id
         params['api_key'] = api_key
@@ -39,7 +37,7 @@ class FredApiConnectionManager:
                 time.sleep(retry_seconds[tries - 1])
 
             try:
-                response = requests.get(url=request_url,
+                response = requests.get(url=self.observations_api_url,
                                         params=params)
                 response.raise_for_status()
             except requests.RequestException as error:

@@ -9,22 +9,22 @@ from aws_lambda_powertools import Logger
 from aws_cache_retrieval import AwsVariableRetriever
 
 from dynamodb_management import DynamoDbManager
-from .fred_api_management import FredApiConnectionManager as FredManager, FredApiRequest as FredRequest
+from fred_lambda.fred_api_management import FredApiConnectionManager as FredManager, FredApiRequest as FredRequest
 
 
 logger = Logger(service="fred_api_pull")
 
 http = urllib3.PoolManager()
 
-aws_session_token = os.environ['AWS_SESSION_TOKEN']
-aws_region = os.environ['AWS_REGION']
-cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
-env = os.environ['ENV']
-project_name = os.environ['FRED_PROJECT_NAME']
+AWS_SESSION_TOKEN = os.environ['AWS_SESSION_TOKEN']
+AWS_REGION = os.environ['AWS_REGION']
+CACHE_PORT = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
+ENV = os.environ['ENV']
+PROJECT_NAME = os.environ['FRED_PROJECT_NAME']
 
-aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
-                                              project_name=project_name,
-                                              aws_session_token=aws_session_token)
+aws_variable_retriever = AwsVariableRetriever(cache_port=CACHE_PORT,
+                                              project_name=PROJECT_NAME,
+                                              aws_session_token=AWS_SESSION_TOKEN)
 
 
 def determine_observation_start(last_updated_day: datetime, default_date: str) -> Union[str, None]:
@@ -59,6 +59,7 @@ def create_fred_requests(requests_json) -> list[FredRequest]:
         fred_requests.append(new_request)
     return fred_requests
 
+
 @logger.inject_lambda_context
 def lambda_handler(event, context):
     raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
@@ -71,11 +72,11 @@ def lambda_handler(event, context):
     fred_requests = create_fred_requests(requests_json=fred_requests_json)
 
     dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
-                                       region=config_values['aws_region'],
+                                       region=AWS_REGION,
                                        partition_key_name=config_values['db_partition_key_name'],
                                        sort_key_name=config_values['db_sort_key_name'])
 
-    fred_manager = FredManager(api_url=config_values['fred_api_url'])
+    fred_manager = FredManager(observations_api_url=config_values['fred_api_url'])
 
     default_data_start_date = config_values['default_data_start_date']
     for request in fred_requests:

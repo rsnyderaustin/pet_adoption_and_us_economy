@@ -8,7 +8,7 @@ from aws_lambda_powertools import Logger
 
 from aws_cache_retrieval import AwsVariableRetriever
 
-logger = Logger(service="petfinder_access_token_generator")
+logger = Logger(service="pf_access_token_generator")
 
 
 aws_session_token = os.environ['AWS_SESSION_TOKEN']
@@ -36,10 +36,10 @@ def lambda_handler(event, context):
 
     data = {
         'grant_type': 'client_credentials',
-        'client_id': config_values['petfinder_api_key'],
-        'client_secret': config_values['petfinder_secret_key']
+        'client_id': config_values['pf_api_key'],
+        'client_secret': config_values['pf_secret_key']
     }
-    retry_seconds = config_values['petfinder_access_token_retry_seconds']
+    retry_seconds = config_values['pf_access_token_retry_seconds']
     max_tries = len(retry_seconds) + 1
 
     for tries in range(max_tries):
@@ -48,7 +48,7 @@ def lambda_handler(event, context):
             # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
             time.sleep(retry_seconds[tries - 1])
         try:
-            response = requests.post(url=config_values['petfinder_token_url'],
+            response = requests.post(url=config_values['pf_token_url'],
                                      data=data)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:

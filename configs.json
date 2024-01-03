@@ -1,0 +1,17 @@
+{
+  "db_partition_key_name": "pk",
+  "db_table_name": "pf_fred_dynamodb_table",
+  "db_sort_key_name": "sk",
+  "default_data_start_date": "2000-01-01",
+  "db_fred_values_attribute_name": "value",
+  "fred_api_url": "https://api.stlouisfed.org/fred/series/observations",
+  "fred_api_key": "baba292bc189be6de3bbdd862ecdd380",
+  "fred_retry_seconds": [1, 4, 8],
+  "pf_api_key": "cdOz6FyD0FLdD6lhYWOQh4zUI5gclgHekVFTYUECTxQZKJiqNl",
+  "pf_secret_key": "ItcucxYTgkTrJ4Z0PxtfhkQzLepFYGpZ2ynOjjQF",
+  "pf_token_url": "https://api.petfinder.com/v2/oauth2/token",
+  "pf_api_url": "https://api.petfinder.com/v2",
+  "pf_access_token_retry_seconds": [1, 4, 8],
+  "pf_request_retry_seconds": [1, 4, 8],
+  "db_pf_values_attribute_name": "count"
+}
