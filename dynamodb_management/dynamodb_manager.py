@@ -39,9 +39,9 @@ class DynamoDbManager:
             # Return None if no data was found for the provided partition key
             return None
 
-    def put_fred_data(self, data, partition_key_value, values_attribute_name):
+    def put_fred_data(self, observations_data, partition_key_value, values_attribute_name):
         with self.dynamodb_table.batch_writer() as batch:
-            for observation in data:
+            for observation in observations_data:
                 new_item = {
                     self.partition_key_name: partition_key_value,
                     self.sort_key_name: observation['date'],

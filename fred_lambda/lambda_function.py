@@ -48,6 +48,9 @@ def create_fred_requests(requests_json) -> list[FredRequest]:
         fred_requests.append(new_request)
     return fred_requests
 
+def latest_observation_same_as_last_updated_day(observations_data: dict, last_updated_day: datetime):
+    latest_observation = max(observations_data['observations'], key=lambda x: x['date'])
+    latest_date = latest_observation['date']
 
 @logger.inject_lambda_context
 def lambda_handler(event, context):
@@ -87,11 +90,13 @@ def lambda_handler(event, context):
             request_json_data = fred_manager.make_request(api_key=config_values['fred_api_key'],
                                                           fred_api_request=request,
                                                           retry_seconds=config_values['fred_retry_seconds'])
-            observations_data = request_json_data['observations']
+
+            if latest_observation_same_as_last_updated_day(last_updated_day=last_updated_day,
+                                                           observations_data=request_json_data):
+                continue
             dynamodb_manager.put_fred_data(partition_key_value=request.name,
-                                           data=observations_data,
+                                           observations_data=request_json_data['observations'],
                                            values_attribute_name=config_values['db_fred_values_attribute_name'])
-            logger.info(f"Successfully uploaded data to DynamoDB for request {request.name}.")
         except requests.exceptions.JSONDecodeError as e:
             logger.error(str(e))
             continue
