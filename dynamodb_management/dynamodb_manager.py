@@ -13,7 +13,7 @@ class DynamoDbManager:
         self.partition_key_name = partition_key_name
         self.sort_key_name = sort_key_name
 
-    def get_last_updated_month(self, partition_key_value, values_attribute_name) -> Union[datetime, None]:
+    def get_last_updated_day(self, partition_key_value, values_attribute_name) -> Union[datetime, None]:
         response = self.dynamodb_table.query(
             KeyConditionExpression="#pk = :pk AND #sk = :sk",
             ExpressionAttributeNames={
@@ -34,8 +34,7 @@ class DynamoDbManager:
 
             dates = [datetime.strptime(date_str, '%Y-%m-%d') for date_str in json_data.keys()]
             latest_date_obj = max(dates)
-            latest_month_obj = latest_date_obj.replace(day=1)
-            return latest_month_obj
+            return latest_date_obj
         else:
             # Return None if no data was found for the provided partition key
             return None

@@ -11,7 +11,6 @@ from aws_cache_retrieval import AwsVariableRetriever
 from dynamodb_management import DynamoDbManager
 from fred_lambda.fred_api_management import FredApiConnectionManager as FredManager, FredApiRequest as FredRequest
 
-
 logger = Logger(service="fred_api_pull")
 
 http = urllib3.PoolManager()
@@ -27,25 +26,15 @@ aws_variable_retriever = AwsVariableRetriever(cache_port=CACHE_PORT,
                                               aws_session_token=AWS_SESSION_TOKEN)
 
 
-def determine_observation_start(last_updated_day: datetime, default_date: str) -> Union[str, None]:
-    """
-
-    :param last_updated_day: datetime object representing the last updated day for the current request
-    :param default_date: The default date for observation start of the current request. Only used when last_updated_day
-        is None, indicating that there is no data for the current request.
-    :return: The default date parameter if last_updated_day is None (indicating no data for the current request),
-        or None if last_updated_day is today's date. Otherwise, returns the string representing the day after the last updated day.
-    """
-    # None value for last_updated_day indicates that there is no data for the current request
+def determine_observation_start(last_updated_day: datetime, default_date: str) -> str:
+    # None value for last_updated_day indicates that there is no data for the current request, so then we request all
+    # data from the default start date for the program
     if last_updated_day is None:
         return default_date
-    today_datetime = datetime.now()
-    if last_updated_day == today_datetime:
-        return None
-    else:
-        day_after_last_update = last_updated_day + timedelta(days=1)
-        observation_start_str = day_after_last_update.strftime('%Y-%m-%d')
-        return observation_start_str
+
+    day_after_last_update = last_updated_day + timedelta(days=1)
+    observation_start_str = day_after_last_update.strftime('%Y-%m-%d')
+    return observation_start_str
 
 
 def create_fred_requests(requests_json) -> list[FredRequest]:
@@ -74,7 +63,8 @@ def lambda_handler(event, context):
     dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
                                        region=AWS_REGION,
                                        partition_key_name=config_values['db_partition_key_name'],
-                                       sort_key_name=config_values['db_sort_key_name'])
+                                       sort_key_name=config_values['db_sort_key_name']
+                                       )
 
     fred_manager = FredManager(observations_api_url=config_values['fred_api_url'])
 
@@ -82,7 +72,9 @@ def lambda_handler(event, context):
     for request in fred_requests:
         partition_key_value = f"fred_{request.name}"
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=partition_key_value,
-                                                                 values_attribute_name=config_values['db_fred_values_attribute_name'])
+                                                                 values_attribute_name=config_values[
+                                                                     'db_fred_values_attribute_name'])
+
         observation_start_str = determine_observation_start(last_updated_day=last_updated_day,
                                                             default_date=default_data_start_date)
 

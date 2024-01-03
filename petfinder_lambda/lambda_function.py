@@ -97,10 +97,13 @@ def lambda_handler(event, context):
                                        sort_key_name=config_values['db_sort_key_name'])
 
     for request in pf_requests:
-        last_updated_month = dynamodb_manager.get_last_updated_month(partition_key_value=request.name,
-                                                                     values_attribute_name=config_values[
-                                                                         'db_pf_values_attribute_name']
-                                                                     )
+        last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
+                                                                 values_attribute_name=config_values[
+                                                                     'db_pf_values_attribute_name']
+                                                                 )
+        # Unlike FRED, Petfinder is expected to always have new data every day, so it is best to just get all data for
+        # the last month and possibly overwrite that value in the database
+        last_updated_month = last_updated_day.replace(day=1)
 
         request.add_parameter(name='after',
                               value=last_updated_month.strftime("%Y-%m-%d"))
