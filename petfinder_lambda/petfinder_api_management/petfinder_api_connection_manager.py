@@ -1,5 +1,4 @@
 import logging
-from json.decoder import JSONDecodeError
 import time
 import requests
 from urllib.parse import urljoin
@@ -66,7 +65,8 @@ class PetfinderApiConnectionManager:
         for tries in range(max_tries):
             if tries >= 1:
                 self.logger.info(
-                    f"Beginning Petfinder API request retry number {tries} for series {petfinder_api_request.name}.")
+                    f"Beginning Petfinder API request retry number {tries} of {max_tries} for series "
+                    f"{petfinder_api_request.name}.")
                 # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
                 time.sleep(retry_seconds[tries - 1])
             try:
@@ -79,6 +79,7 @@ class PetfinderApiConnectionManager:
                 continue
             except requests.exceptions.JSONDecodeError as error:
                 self.logger.error(f"Error when attempting to decode JSON.\nDetails: {str(error)}")
+                continue
 
         self.logger.error(f"Max number of tries ({max_tries}) reached when making Petfinder API request.\n"
                           f"Request name is {petfinder_api_request.name}. Skipping unsuccesful request.")

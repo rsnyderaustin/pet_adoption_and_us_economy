@@ -89,6 +89,7 @@ def lambda_handler(event, context):
                                                         petfinder_api_request=request,
                                                         retry_seconds=config_values['pf_request_retry_seconds'])
             data_count = count_animals_by_date(json_data=request_json_data)
+
             partition_key_value = f"pf_{request.name}"
             dynamodb_manager.put_pf_data(data=data_count,
                                          partition_key_value=partition_key_value,
