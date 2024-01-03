@@ -11,20 +11,21 @@ from aws_cache_retrieval import AwsVariableRetriever
 logger = Logger(service="pf_access_token_generator")
 
 
-aws_session_token = os.environ['AWS_SESSION_TOKEN']
-aws_region = os.environ['AWS_REGION']
-cache_port = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
-project_name = os.environ['FRED_PROJECT_NAME']
+AWS_SESSION_TOKEN = os.environ['AWS_SESSION_TOKEN']
+AWS_REGION = os.environ['AWS_REGION']
+CACHE_PORT = os.environ['PARAMETERS_SECRETS_EXTENSION_HTTP_PORT']
+PROJECT_NAME = os.environ['FRED_PROJECT_NAME']
 
-aws_variable_retriever = AwsVariableRetriever(cache_port=cache_port,
-                                              project_name=project_name,
-                                              aws_session_token=aws_session_token)
+aws_variable_retriever = AwsVariableRetriever(cache_port=CACHE_PORT,
+                                              project_name=PROJECT_NAME,
+                                              aws_session_token=AWS_SESSION_TOKEN)
 
 
 class MaxGenerateAccessTokenTriesError(Exception):
     pass
 
 
+@logger.inject_lambda_context
 def lambda_handler(event, context):
     """
     Generates a new Petfinder access token if necessary, and returns a valid token.
