@@ -38,16 +38,21 @@ def create_pf_requests(requests_json) -> list[PfRequest]:
     return pf_requests
 
 
-def count_data_by_date(json_data, pf_date_format):
+def count_animals_by_date(json_data):
+    logger.info(f"Processing JSON data in count_animals_by_date:\n{json_data}")
     dates_data = {}
     animals = json_data['animals']
     for animal in animals:
         date_time = animal['published_at']
+        logger.info(f"Found animal date: '{date_time}'")
         date_match = re.match(r'([^T]+)T', date_time)
         date = date_match.group(1)
-        dates_data[date]
-    num_animals = len(animals)
-    return num_animals
+        logger.info(f"Animal date parsed to: '{date}'")
+        if date in dates_data:
+            dates_data[date] += 1
+        else:
+            dates_data[date] = 1
+    return dates_data
 
 
 @logger.inject_lambda_context
@@ -83,7 +88,7 @@ def lambda_handler(event, context):
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                         petfinder_api_request=request,
                                                         retry_seconds=config_values['pf_request_retry_seconds'])
-            data_count = count_request_data(json_data=request_json_data)
+            data_count = count_animals_by_date(json_data=request_json_data)
             partition_key_value = f"pf_{request.name}"
             dynamodb_manager.put_pf_data(data=data_count,
                                          partition_key_value=partition_key_value,

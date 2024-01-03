@@ -23,6 +23,30 @@ class PetfinderApiConnectionManager:
         self.access_token = access_token
         self.logger = logging.getLogger(name="PetfinderApiConnectionManager")
 
+    def process_requests_in_pages(self, headers, url, params):
+        # Process the first page
+        page = 1
+        params['page'] = 1
+        response = requests.get(headers=headers,
+                                url=url,
+                                params=params)
+        response_json = response.json()
+        total_num_pages = response_json['pagination']['total_pages']
+        self.logger.info(f"Number of pages in current request: {total_num_pages}")
+        page += 1
+
+        aggregate_json_data = response_json
+        for page in total_num_pages:
+            params['page'] = page
+            response = requests.get(headers=headers,
+                                    url=url,
+                                    params=params)
+            response_json = response.json()
+            aggregate_json_data.update(response_json)
+        self.logger.info(f"{total_num_pages} successfully processed for current request.")
+
+        return aggregate_json_data
+
     def format_url_with_category(self, category):
         return urljoin(self.api_url, category)
 
@@ -46,23 +70,15 @@ class PetfinderApiConnectionManager:
                 # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
                 time.sleep(retry_seconds[tries - 1])
             try:
-                response = requests.get(headers=access_token_header,
-                                        url=api_url,
-                                        params=petfinder_api_request.parameters)
-                response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                continue
-            try:
-                json_data = response.json()
+                json_data = self.process_requests_in_pages(headers=access_token_header,
+                                                           url=api_url,
+                                                           params=petfinder_api_request.parameters)
                 return json_data
+            except requests.exceptions.RequestException as error:
+                self.logger.error(f"Exception during Petfinder API request.\nDetails: {str(error)}")
+                continue
             except requests.exceptions.JSONDecodeError as error:
-                if tries == max_tries:
-                    self.logger.error(
-                        f"Reached last API request try. Exception raised when decoding JSON.\nDetails: {str(error)}\n"
-                        f"Exiting this API request.")
-                    raise error
-                else:
-                    self.logger.error(f"Error when attempting to decode JSON.\nDetails: {str(error)}")
+                self.logger.error(f"Error when attempting to decode JSON.\nDetails: {str(error)}")
 
         self.logger.error(f"Max number of tries ({max_tries}) reached when making Petfinder API request.\n"
-                          f"Request name is {petfinder_api_request.name}.")
+                          f"Request name is {petfinder_api_request.name}. Skipping unsuccesful request.")
