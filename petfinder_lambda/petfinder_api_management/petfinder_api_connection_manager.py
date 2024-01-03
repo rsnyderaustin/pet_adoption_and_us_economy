@@ -22,7 +22,7 @@ class PetfinderApiConnectionManager:
         self.access_token = access_token
         self.logger = logging.getLogger(name="PetfinderApiConnectionManager")
 
-    def process_requests_in_pages(self, headers, url, params):
+    def process_requests_by_page(self, headers, url, params):
         # Process the first page
         page = 1
         params['page'] = 1
@@ -70,9 +70,9 @@ class PetfinderApiConnectionManager:
                 # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
                 time.sleep(retry_seconds[tries - 1])
             try:
-                json_data = self.process_requests_in_pages(headers=access_token_header,
-                                                           url=api_url,
-                                                           params=petfinder_api_request.parameters)
+                json_data = self.process_requests_by_page(headers=access_token_header,
+                                                          url=api_url,
+                                                          params=petfinder_api_request.parameters)
                 return json_data
             except requests.exceptions.RequestException as error:
                 self.logger.error(f"Exception during Petfinder API request.\nDetails: {str(error)}")

@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import re
@@ -38,20 +39,39 @@ def create_pf_requests(requests_json) -> list[PfRequest]:
     return pf_requests
 
 
+def published_at_str_into_datetime(published_at_str: str):
+    date_match = re.match(r'([^T]+)T', published_at_str)
+    date_string = date_match.group(1)
+    logger.info(f"Animal date parsed to: '{date_string}'")
+    datetime_obj = datetime.strptime(date_string, "%Y-%m-%d")
+    return datetime_obj
+
+
 def count_animals_by_date(json_data):
+    """
+
+    :param json_data:
+    :return: Dict formatted: {"yyyy-mm" : {"dd" : value} }
+    """
     logger.info(f"Processing JSON data in count_animals_by_date:\n{json_data}")
     dates_data = {}
     animals = json_data['animals']
     for animal in animals:
-        date_time = animal['published_at']
-        logger.info(f"Found animal date: '{date_time}'")
-        date_match = re.match(r'([^T]+)T', date_time)
-        date = date_match.group(1)
-        logger.info(f"Animal date parsed to: '{date}'")
-        if date in dates_data:
-            dates_data[date] += 1
+        published_at_string = animal['published_at']
+        logger.info(f"Found animal date: '{published_at_string}'")
+
+        datetime_obj = published_at_str_into_datetime(published_at_str=published_at_string)
+
+        month_year = datetime_obj.strftime("%Y-%m")
+        day = datetime_obj.strftime("%d")
+
+        if month_year in dates_data:
+            if day in dates_data[month_year]:
+                dates_data[month_year] += 1
+            else:
+                dates_data[month_year][day] = 1
         else:
-            dates_data[date] = 1
+            dates_data[month_year] = 1
     return dates_data
 
 
@@ -77,12 +97,13 @@ def lambda_handler(event, context):
                                        sort_key_name=config_values['db_sort_key_name'])
 
     for request in pf_requests:
-        last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
-                                                                 values_attribute_name=config_values[
-                                                                     'db_pf_values_attribute_name']
-                                                                 )
+        last_updated_month = dynamodb_manager.get_last_updated_month(partition_key_value=request.name,
+                                                                     values_attribute_name=config_values[
+                                                                         'db_pf_values_attribute_name']
+                                                                     )
+
         request.add_parameter(name='after',
-                              value=last_updated_day)
+                              value=last_updated_month.strftime("%Y-%m-%d"))
 
         try:
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
@@ -90,9 +111,8 @@ def lambda_handler(event, context):
                                                         retry_seconds=config_values['pf_request_retry_seconds'])
             data_count = count_animals_by_date(json_data=request_json_data)
 
-            partition_key_value = f"pf_{request.name}"
             dynamodb_manager.put_pf_data(data=data_count,
-                                         partition_key_value=partition_key_value,
+                                         partition_key_value=f"pf_{request.name}",
                                          values_attribute_name=config_values['db_pf_values_attribute_name'])
         except requests.exceptions.JSONDecodeError as e:
             logger.error(str(e))
