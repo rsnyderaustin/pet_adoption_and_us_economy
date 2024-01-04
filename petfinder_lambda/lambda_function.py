@@ -120,5 +120,5 @@ def lambda_handler(event, context):
         data_count = count_animals_by_date(json_data=request_json_data)
 
         dynamodb_manager.put_pf_data(data=data_count,
-                                     partition_key_value=f"pf_{request.name}",
+                                     partition_key_value=partition_key_value,
                                      values_attribute_name=config_values['db_pf_values_attribute_name'])
