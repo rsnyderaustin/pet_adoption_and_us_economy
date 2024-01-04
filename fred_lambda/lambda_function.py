@@ -94,7 +94,8 @@ def lambda_handler(event, context):
     fred_manager = FredManager(observations_api_url=config_values['fred_api_url'])
 
     for request in fred_requests:
-        partition_key_value = f"fred_{request.name}"
+        partition_key_string_literal = config_values['fred_partition_key_string_literal']
+        partition_key_value = f"{partition_key_string_literal}{request.name}"
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=partition_key_value,
                                                                  values_attribute_name=config_values[
                                                                      'db_fred_values_attribute_name'])
