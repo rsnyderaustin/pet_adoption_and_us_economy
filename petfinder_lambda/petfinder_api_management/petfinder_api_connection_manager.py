@@ -12,14 +12,13 @@ class MaxGenerateAccessTokenTriesError(Exception):
 
 class PetfinderApiConnectionManager:
 
-    def __init__(self, api_url, access_token):
+    def __init__(self, api_url):
         """
 
         :param api_url: Petfinder API URL
         :param access_token: Petfinder access token
         """
         self.api_url = api_url
-        self.access_token = access_token
         self.logger = logging.getLogger(name="PetfinderApiConnectionManager")
 
     def process_requests_by_page(self, headers, url, params):

@@ -72,8 +72,7 @@ def lambda_handler(event, context):
     dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
                                        region=AWS_REGION,
                                        partition_key_name=config_values['db_partition_key_name'],
-                                       sort_key_name=config_values['db_sort_key_name']
-                                       )
+                                       sort_key_name=config_values['db_sort_key_name'])
 
     fred_manager = FredManager(observations_api_url=config_values['fred_api_url'])
 

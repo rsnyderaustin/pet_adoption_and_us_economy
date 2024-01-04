@@ -88,8 +88,7 @@ def lambda_handler(event, context):
 
     pf_access_token = aws_variable_retriever.retrieve_secret_value(secret_name='pf_access_token')
 
-    pf_manager = PfManager(api_url=config_values['petfinder_api_url'],
-                           access_token=pf_access_token)
+    pf_manager = PfManager(api_url=config_values['petfinder_api_url'])
 
     dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
                                        region=AWS_REGION,
@@ -99,8 +98,7 @@ def lambda_handler(event, context):
     for request in pf_requests:
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=request.name,
                                                                  values_attribute_name=config_values[
-                                                                     'db_pf_values_attribute_name']
-                                                                 )
+                                                                     'db_pf_values_attribute_name'])
         # DynamoDB data is stored by year and month. Most efficient and simplest to just get all data for
         # the latest month and overwrite that data in the table
         last_updated_month = last_updated_day.replace(day=1)
