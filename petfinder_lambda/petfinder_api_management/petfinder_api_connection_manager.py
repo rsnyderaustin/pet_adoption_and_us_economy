@@ -82,4 +82,4 @@ class PetfinderApiConnectionManager:
                 continue
 
         self.logger.error(f"Max number of tries ({max_tries}) reached when making Petfinder API request.\n"
-                          f"Request name is {petfinder_api_request.name}. Skipping unsuccesful request.")
+                          f"Request name is {petfinder_api_request.name}. Skipping unsuccessful request.")
