@@ -58,6 +58,22 @@ def latest_observation_same_as_last_updated_day(observations_data: dict, last_up
         return False
 
 
+def values_by_date(json_data):
+    logger.info("Processing values by year-month in FRED lambda function.")
+    dates_data = {}
+    for observation in json_data['observations']:
+        datetime_obj = datetime.strptime(observation['date'], '%Y-%m-%d')
+        month_year = datetime_obj.strftime("%Y-%m")
+        day = datetime_obj.strftime("%d")
+
+        if month_year not in dates_data:
+            dates_data[month_year] = {}
+
+        dates_data[month_year][day] = observation['value']
+
+    return dates_data
+
+
 @logger.inject_lambda_context
 def lambda_handler(event, context):
     raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
@@ -98,9 +114,10 @@ def lambda_handler(event, context):
             if latest_observation_same_as_last_updated_day(last_updated_day=last_updated_day,
                                                            observations_data=request_json_data):
                 continue
+            formatted_data = values_by_date(json_data=request_json_data)
 
             dynamodb_manager.put_fred_data(partition_key_value=request.name,
-                                           observations_data=request_json_data['observations'],
+                                           observations_data=formatted_data,
                                            values_attribute_name=config_values['db_fred_values_attribute_name'])
         except requests.exceptions.JSONDecodeError as e:
             logger.error(str(e))
