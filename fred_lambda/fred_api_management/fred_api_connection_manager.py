@@ -34,7 +34,15 @@ class FredApiConnectionManager:
         request_params = self.construct_request_params(fred_api_request=fred_api_request,
                                                        api_key=api_key)
 
-        # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+        """ 
+        The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+       
+            ex: 0  1 2 3 4
+                   | | | |
+                   v v v v
+                0 [2 4 8 16]
+            Index: 0 1 2 3 
+        """
         max_tries = len(retry_seconds) + 1
         for tries in range(max_tries):
             if tries >= 1:

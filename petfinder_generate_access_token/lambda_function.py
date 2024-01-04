@@ -41,6 +41,15 @@ def lambda_handler(event, context):
         'client_secret': config_values['pf_secret_key']
     }
     retry_seconds = config_values['pf_access_token_retry_seconds']
+    """ 
+        The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
+       
+            ex: 0  1 2 3 4
+                   | | | |
+                   v v v v
+                0 [2 4 8 16]
+            Index: 0 1 2 3 
+    """
     max_tries = len(retry_seconds) + 1
 
     for tries in range(max_tries):
@@ -48,22 +57,26 @@ def lambda_handler(event, context):
             logger.info(f"Retry number {tries} for generating a Petfinder access token.")
             # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
             time.sleep(retry_seconds[tries - 1])
+        response = requests.post(url=config_values['pf_token_url'],
+                                 data=data)
         try:
-            response = requests.post(url=config_values['pf_token_url'],
-                                     data=data)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            logger.error(str(e))
-            return e
-        try:
-            response_data = response.json()
+            response_json = response.json()
         except JSONDecodeError as e:
             logger.error(str(e))
-            return e
+            continue
         try:
-            return response_data['access_token']
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(response_json['details']
+            continue
+        try:
+            access_token = response_json['access_token']
         except KeyError as e:
             logger.error(str(e))
             raise e
+
+        return access_token
+
+    # Reached outside of for loop means max tries reached
     logger.error(f"Max number of tries ({max_tries}) reached when generating Petfinder access token.")
     raise MaxGenerateAccessTokenTriesError
