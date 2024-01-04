@@ -77,7 +77,6 @@ def lambda_handler(event, context):
 
     fred_manager = FredManager(observations_api_url=config_values['fred_api_url'])
 
-    default_data_start_date = config_values['default_data_start_date']
     for request in fred_requests:
         partition_key_value = f"fred_{request.name}"
         last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=partition_key_value,
@@ -88,7 +87,7 @@ def lambda_handler(event, context):
         # DynamoDB data is stored by year and month. Most efficient and simplest to just get all data for
         # the latest month and overwrite that data in the table if it needs to be updated
         observation_start_str = determine_observation_start(last_updated_day=last_updated_month,
-                                                            default_date=default_data_start_date)
+                                                            default_date=config_values['default_data_start_date'])
 
         request.add_parameter(name='observation_start',
                               value=observation_start_str)
