@@ -1,4 +1,3 @@
-from json.decoder import JSONDecodeError
 import json
 import os
 import requests
@@ -51,7 +50,7 @@ def lambda_handler(event, context):
             Index: 0 1 2 3 
     """
     max_tries = len(retry_seconds) + 1
-
+    logger.info(f"Beginning requests to generate Petfinder access token.")
     for tries in range(max_tries):
         if tries >= 1:
             logger.info(f"Retry number {tries} for generating a Petfinder access token.")
@@ -61,13 +60,13 @@ def lambda_handler(event, context):
                                  data=data)
         try:
             response_json = response.json()
-        except JSONDecodeError as e:
+        except json.decoder.JSONDecodeError as e:
             logger.error(str(e))
             continue
         try:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logger.error(response_json['details']
+            logger.error(response_json['details'])
             continue
         try:
             access_token = response_json['access_token']

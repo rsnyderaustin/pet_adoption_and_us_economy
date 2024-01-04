@@ -44,6 +44,8 @@ class FredApiConnectionManager:
             Index: 0 1 2 3 
         """
         max_tries = len(retry_seconds) + 1
+        self.logger.info(f"Beginning FredApiConnectionManager API request for {fred_api_request.name} with max tries=\n"
+                         f"{max_tries}.")
         for tries in range(max_tries):
             if tries >= 1:
                 self.logger.info(
@@ -58,17 +60,18 @@ class FredApiConnectionManager:
                 response_data = response.json()
             except requests.exceptions.JSONDecodeError as error:
                 self.logger.error(f"FRED API error during JSON decoding for request '{fred_api_request.name} "
-                                  f"on try number {tries} of {max_tries}.\nDetails:{str(error)}")
+                                  f"on try number {tries} of {max_tries}.\nDetails:{str(error)}.\n"
+                                  f"Response text:{response.text}\n")
                 continue
 
             try:
                 response.raise_for_status()
             except requests.RequestException:
                 self.logger.error(f"FRED API failed request for request '{fred_api_request.name} on try "
-                                  f"number {tries} of {max_tries}.\nDetails:{response_data['details']}")
+                                  f"number {tries} of {max_tries}.\nDetails:\n{response_data['details']}")
                 continue
 
-            self.logger.info(f"FRED API successful request for series ID '{fred_api_request.series_id}'.")
+            self.logger.info(f"FRED API successful request for request '{fred_api_request.name}'.")
 
         # Out of the for loop - this is reached if no data is successfully received
         self.logger.error(f"Max request attempts reached for FRED API requests for request name "

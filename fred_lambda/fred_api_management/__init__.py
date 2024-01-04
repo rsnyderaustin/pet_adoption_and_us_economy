@@ -1,1 +1,1 @@
-from .fred_api_connection_manager import FredApiConnectionManager, FredApiRequest
+from .fred_api_connection_manager import FredApiConnectionManager, FredApiRequest, MaxFredDataRequestTriesError

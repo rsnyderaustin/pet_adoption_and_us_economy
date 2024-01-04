@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from .petfinder_api_request import PetfinderApiRequest
 
 
-class MaxGenerateAccessTokenTriesError(Exception):
+class MaxPfDataRequestTriesError(Exception):
     pass
 
 
@@ -88,5 +88,6 @@ class PetfinderApiConnectionManager:
                 self.logger.error(f"Error when attempting to decode JSON.\nDetails: {str(error)}")
                 continue
 
-        self.logger.error(f"Max number of tries ({max_tries}) reached when making Petfinder API request.\n"
-                          f"Request name is {petfinder_api_request.name}. Skipping unsuccessful request.")
+        self.logger.error(f"Max number of tries '{max_tries}' reached when making Petfinder API request for request "
+                          f"'{petfinder_api_request.name}'.\nSkipping unsuccessful request.")
+        raise MaxPfDataRequestTriesError

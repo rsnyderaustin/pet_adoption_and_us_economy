@@ -9,7 +9,8 @@ from aws_lambda_powertools import Logger
 from aws_cache_retrieval import AwsVariableRetriever
 
 from dynamodb_management import DynamoDbManager
-from fred_lambda.fred_api_management import FredApiConnectionManager as FredManager, FredApiRequest as FredRequest
+from fred_lambda.fred_api_management import (MaxFredDataRequestTriesError, FredApiConnectionManager as FredManager,
+                                             FredApiRequest as FredRequest)
 
 logger = Logger(service="fred_api_pull")
 
@@ -110,15 +111,15 @@ def lambda_handler(event, context):
             request_json_data = fred_manager.make_request(api_key=config_values['fred_api_key'],
                                                           fred_api_request=request,
                                                           retry_seconds=config_values['fred_retry_seconds'])
-
-            if latest_observation_same_as_last_updated_day(last_updated_day=last_updated_day,
-                                                           observations_data=request_json_data):
-                continue
-            formatted_data = values_by_date(json_data=request_json_data)
-
-            dynamodb_manager.put_fred_data(partition_key_value=request.name,
-                                           observations_data=formatted_data,
-                                           values_attribute_name=config_values['db_fred_values_attribute_name'])
-        except requests.exceptions.JSONDecodeError as e:
-            logger.error(str(e))
+        except MaxFredDataRequestTriesError:
             continue
+
+        if latest_observation_same_as_last_updated_day(last_updated_day=last_updated_day,
+                                                       observations_data=request_json_data):
+            continue
+
+        formatted_data = values_by_date(json_data=request_json_data)
+
+        dynamodb_manager.put_fred_data(partition_key_value=request.name,
+                                       data=formatted_data,
+                                       values_attribute_name=config_values['db_fred_values_attribute_name'])

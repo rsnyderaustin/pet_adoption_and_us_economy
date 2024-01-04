@@ -11,7 +11,7 @@ from aws_cache_retrieval import AwsVariableRetriever
 from dynamodb_management import DynamoDbManager
 
 from petfinder_lambda.petfinder_api_management import PetfinderApiConnectionManager as PfManager, \
-    PetfinderApiRequest as PfRequest
+    PetfinderApiRequest as PfRequest, MaxPfDataRequestTriesError
 
 logger = Logger(service="petfinder_api_pull")
 
@@ -110,11 +110,13 @@ def lambda_handler(event, context):
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
                                                         petfinder_api_request=request,
                                                         retry_seconds=config_values['pf_request_retry_seconds'])
-            data_count = count_animals_by_date(json_data=request_json_data)
-
-            dynamodb_manager.put_pf_data(data=data_count,
-                                         partition_key_value=f"pf_{request.name}",
-                                         values_attribute_name=config_values['db_pf_values_attribute_name'])
         except requests.exceptions.JSONDecodeError as e:
-            logger.error(str(e))
             continue
+        except MaxPfDataRequestTriesError:
+            continue
+
+        data_count = count_animals_by_date(json_data=request_json_data)
+
+        dynamodb_manager.put_pf_data(data=data_count,
+                                     partition_key_value=f"pf_{request.name}",
+                                     values_attribute_name=config_values['db_pf_values_attribute_name'])
