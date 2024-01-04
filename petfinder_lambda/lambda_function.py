@@ -26,6 +26,23 @@ aws_variable_retriever = AwsVariableRetriever(cache_port=CACHE_PORT,
                                               project_name=PROJECT_NAME,
                                               aws_session_token=AWS_SESSION_TOKEN)
 
+raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
+                                                                    expect_json=True)
+config_values = json.loads(raw_config_values)
+
+raw_pf_requests = aws_variable_retriever.retrieve_parameter_value(parameter_name='pf_requests',
+                                                                  expect_json=True)
+pf_requests_json = json.loads(raw_pf_requests)
+
+pf_access_token = aws_variable_retriever.retrieve_secret_value(secret_name='pf_access_token')
+
+pf_manager = PfManager(api_url=config_values['petfinder_api_url'])
+
+dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
+                                   region=AWS_REGION,
+                                   partition_key_name=config_values['db_partition_key_name'],
+                                   sort_key_name=config_values['db_sort_key_name'])
+
 
 def create_pf_requests(requests_json) -> list[PfRequest]:
     pf_requests = []
@@ -77,23 +94,7 @@ def count_animals_by_date(json_data):
 
 @logger.inject_lambda_context
 def lambda_handler(event, context):
-    raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
-                                                                        expect_json=True)
-    config_values = json.loads(raw_config_values)
-
-    raw_pf_requests = aws_variable_retriever.retrieve_parameter_value(parameter_name='pf_requests',
-                                                                      expect_json=True)
-    pf_requests_json = json.loads(raw_pf_requests)
     pf_requests = create_pf_requests(requests_json=pf_requests_json)
-
-    pf_access_token = aws_variable_retriever.retrieve_secret_value(secret_name='pf_access_token')
-
-    pf_manager = PfManager(api_url=config_values['petfinder_api_url'])
-
-    dynamodb_manager = DynamoDbManager(table_name=config_values['db_table_name'],
-                                       region=AWS_REGION,
-                                       partition_key_name=config_values['db_partition_key_name'],
-                                       sort_key_name=config_values['db_sort_key_name'])
 
     for request in pf_requests:
         partition_key_string_literal = config_values['pf_partition_key_string_literal']

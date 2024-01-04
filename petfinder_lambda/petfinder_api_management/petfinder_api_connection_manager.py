@@ -16,7 +16,6 @@ class PetfinderApiConnectionManager:
         """
 
         :param api_url: Petfinder API URL
-        :param access_token: Petfinder access token
         """
         self.api_url = api_url
         self.logger = logging.getLogger(name="PetfinderApiConnectionManager")
@@ -46,7 +45,8 @@ class PetfinderApiConnectionManager:
         return aggregate_json_data
 
     def format_url_with_category(self, category):
-        return urljoin(self.api_url, category)
+        formatted_url = urljoin(self.api_url, category)
+        return formatted_url
 
     def make_request(self, petfinder_api_request: PetfinderApiRequest, access_token, retry_seconds):
         """
@@ -59,6 +59,7 @@ class PetfinderApiConnectionManager:
 
         # Have to append category to the API URL, per Petfinder API documentation
         api_url = self.format_url_with_category(category=petfinder_api_request.category)
+
         """ 
         The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
        
