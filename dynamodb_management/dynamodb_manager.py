@@ -13,31 +13,53 @@ class DynamoDbManager:
         self.partition_key_name = partition_key_name
         self.sort_key_name = sort_key_name
 
-    def get_last_updated_day(self, partition_key_value, values_attribute_name) -> Union[datetime, None]:
+    def get_most_recent_day(self, partition_key_value, values_attribute_name) -> Union[datetime, None]:
         response = self.dynamodb_table.query(
-            KeyConditionExpression="#pk = :pk AND #sk = :sk",
             ExpressionAttributeNames={
                 '#pk': self.partition_key_name,
-                '#sk': self.sort_key_name
+                '#sk': self.sort_key_name,
+                '#attribute_name': values_attribute_name
             },
             ExpressionAttributeValues={
                 ":pk": {'S': partition_key_value}
             },
+            KeyConditionExpression="#pk = :pk",
+            ProjectionExpression='#sk, #attribute_name',
             # Sort dates in descending order (most recent at the top)
-            ScanIndexForward=False,
-            Limit=1
+            ScanIndexForward=False
         )
-        if response and 'Items' in response:
-            last_item = response['Items'][0]
-            last_month_data = last_item[values_attribute_name]
-            json_data = json.loads(last_month_data)
+        """
+        Expected format:
+        {
+            'Items': [
+                {
+                    'sk' (<- sort_key_name): {
+                        'S': '2023-12'
+                    }
+                    'value' (<- values_attribute_name): {
+                        'M': {
+                            '01': {'N': '12.3'},
+                            '02': {'N': '12.1'},
+                            etc...
+                        }
+                    }
+                }
+            ]
+        }
+        """
 
-            dates = [datetime.strptime(date_str, '%Y-%m-%d') for date_str in json_data.keys()]
-            latest_date_obj = max(dates)
-            return latest_date_obj
-        else:
-            # Return None if no data was found for the provided partition key
+        # Return None if no data was found for the query - likely indicates that no value is present for the partition
+        # key
+        if len(response['Items']) == 0:
             return None
+
+        most_recent_item = response['Items'][0]
+        year_month = most_recent_item[self.sort_key_name]['S']
+        days_dict = most_recent_item[values_attribute_name]['M']
+        day = max(int(key) for key, value in days_dict.items())
+        full_date = f"{year_month}-{day}"
+        most_recent_day = datetime.strptime(full_date, "%Y-%m-%d")
+        return most_recent_day
 
     def put_fred_data(self, data: dict, partition_key_value, values_attribute_name):
         with self.dynamodb_table.batch_writer() as batch:

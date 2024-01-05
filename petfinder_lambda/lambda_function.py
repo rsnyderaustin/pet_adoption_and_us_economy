@@ -99,8 +99,8 @@ def lambda_handler(event, context):
     for request in pf_requests:
         partition_key_string_literal = config_values['pf_partition_key_string_literal']
         partition_key_value = f"{partition_key_string_literal}{request.name}"
-        last_updated_day = dynamodb_manager.get_last_updated_day(partition_key_value=partition_key_value,
-                                                                 values_attribute_name=config_values[
+        last_updated_day = dynamodb_manager.get_most_recent_day(partition_key_value=partition_key_value,
+                                                                values_attribute_name=config_values[
                                                                      'db_pf_values_attribute_name'])
         # DynamoDB data is stored by year and month. Most efficient and simplest to just get all data for
         # the latest month and overwrite that data in the table
