@@ -1,4 +1,4 @@
-
+from typing import Any
 
 class FredApiRequest:
 
@@ -7,6 +7,6 @@ class FredApiRequest:
         self.series_id = series_id
         self.parameters = parameters
 
-    def add_parameter(self, name, value):
+    def add_parameter(self, name: str, value: Any):
         self.parameters[name] = value
 

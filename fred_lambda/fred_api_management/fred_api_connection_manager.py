@@ -12,12 +12,12 @@ class MaxFredDataRequestTriesError(Exception):
 
 class FredApiConnectionManager:
 
-    def __init__(self, observations_api_url):
+    def __init__(self, observations_api_url: str):
         self.observations_api_url = observations_api_url
         self.logger = logging.getLogger(name='FredApiConnectionManager')
 
     @staticmethod
-    def construct_request_params(fred_api_request, api_key):
+    def construct_request_params(fred_api_request: FredApiRequest, api_key: str):
         params = fred_api_request.parameters
         params['series_id'] = fred_api_request.series_id
         params['api_key'] = api_key
