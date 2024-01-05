@@ -7,13 +7,13 @@ from typing import Union
 
 class DynamoDbManager:
 
-    def __init__(self, table_name, region, partition_key_name, sort_key_name):
+    def __init__(self, table_name: str, region: str, partition_key_name: str, sort_key_name: str):
         dynamodb_client = boto3.resource('dynamodb', region_name=region)
         self.dynamodb_table = dynamodb_client.Table(table_name)
         self.partition_key_name = partition_key_name
         self.sort_key_name = sort_key_name
 
-    def get_most_recent_day(self, partition_key_value, values_attribute_name) -> Union[datetime, None]:
+    def get_most_recent_day(self, partition_key_value: str, values_attribute_name: str) -> Union[datetime, None]:
         response = self.dynamodb_table.query(
             ExpressionAttributeNames={
                 '#pk': self.partition_key_name,
@@ -57,7 +57,7 @@ class DynamoDbManager:
             year_month = most_recent_item[self.sort_key_name]['S']
             days_dict = most_recent_item[values_attribute_name]['M']
         except KeyError as error:
-            logging.error(f"Key Error details: {str(error)}\nResponse item:{response.}")
+            logging.error(f"Key Error details: {str(error)}\nResponse item:{response}")
             raise error
 
         day = max(int(key) for key, value in days_dict.items())
@@ -67,7 +67,7 @@ class DynamoDbManager:
         most_recent_day = datetime.strptime(full_date, "%Y-%m-%d")
         return most_recent_day
 
-    def put_fred_data(self, data: dict, partition_key_value, values_attribute_name):
+    def put_fred_data(self, data: dict, partition_key_value: str, values_attribute_name: str):
         with self.dynamodb_table.batch_writer() as batch:
             for year_month, days_dict in data.items():
                 new_item = {
@@ -77,7 +77,7 @@ class DynamoDbManager:
                 }
                 batch.put_item(new_item)
 
-    def put_pf_data(self, data: dict, partition_key_value, values_attribute_name):
+    def put_pf_data(self, data: dict, partition_key_value: str, values_attribute_name: str):
         with self.dynamodb_table.batch_writer() as batch:
             for year_month, days_dict in data.items():
                 item_data = {

@@ -57,26 +57,27 @@ def lambda_handler(event, context):
             # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
             time.sleep(retry_seconds[tries - 1])
 
-        response = requests.get(url=config_values['pf_token_url'],
+        response = requests.post(url=config_values['pf_token_url'],
                                  data=data)
         try:
             response_json = response.json()
-        except json.decoder.JSONDecodeError as e:
-            logger.error(str(e))
+        except json.decoder.JSONDecodeError as error:
+            logger.error(str(error))
             continue
         try:
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            logger.error(response_json['details'])
+        except requests.exceptions.RequestException as error:
+            logger.error(f"Error during Petfinder Access Token API request\nDetails: {response_json['details']}")
             continue
         try:
             access_token = response_json['access_token']
-        except KeyError as e:
-            logger.error(str(e))
-            raise e
+        except KeyError as error:
+            logger.error(f"Error when attempting to read 'access_token' key from Petfinder access token JSON response.\n"
+                         f"Response JSON:\n{response_json}")
+            continue
 
         return access_token
 
     # Reached outside of for loop means max tries reached
-    logger.error(f"Max number of tries ({max_tries}) reached when generating Petfinder access token.")
+    logger.error(f"Max number of tries ({max_tries}) reached when attempting to generate Petfinder access token.")
     raise MaxGenerateAccessTokenTriesError
