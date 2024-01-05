@@ -71,10 +71,10 @@ class PetfinderApiConnectionManager:
         """
         max_tries = len(retry_seconds) + 1
         for tries in range(max_tries):
+            self.logger.info(
+                f"Beginning Petfinder API request try number {tries} of {max_tries} for series "
+                f"{petfinder_api_request.name}.")
             if tries >= 1:
-                self.logger.info(
-                    f"Beginning Petfinder API request retry number {tries} of {max_tries} for series "
-                    f"{petfinder_api_request.name}.")
                 # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
                 time.sleep(retry_seconds[tries - 1])
             try:

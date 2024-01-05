@@ -1,6 +1,6 @@
 import boto3
 from datetime import datetime
-import json
+import logging
 
 from typing import Union
 
@@ -52,12 +52,18 @@ class DynamoDbManager:
         # key
         if len(response['Items']) == 0:
             return None
+        try:
+            most_recent_item = response['Items'][0]
+            year_month = most_recent_item[self.sort_key_name]['S']
+            days_dict = most_recent_item[values_attribute_name]['M']
+        except KeyError as error:
+            logging.error(f"Key Error details: {str(error)}\nResponse item:{response.}")
+            raise error
 
-        most_recent_item = response['Items'][0]
-        year_month = most_recent_item[self.sort_key_name]['S']
-        days_dict = most_recent_item[values_attribute_name]['M']
         day = max(int(key) for key, value in days_dict.items())
         full_date = f"{year_month}-{day}"
+        logging.info(f"Most recent updated day for DynamoDB partition key {self.partition_key_name} found to be: "
+                     f"{full_date}.")
         most_recent_day = datetime.strptime(full_date, "%Y-%m-%d")
         return most_recent_day
 
