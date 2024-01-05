@@ -50,13 +50,14 @@ def lambda_handler(event, context):
             Index: 0 1 2 3 
     """
     max_tries = len(retry_seconds) + 1
-    logger.info(f"Beginning requests to generate Petfinder access token.")
+    logger.info(f"Beginning Petfinder access token requests.")
     for tries in range(max_tries):
+        logger.info(f"Beginning try number {tries} of {max_tries} to generate Petfinder access token.")
         if tries >= 1:
-            logger.info(f"Retry number {tries} for generating a Petfinder access token.")
             # The 0th index of retry_seconds represents the sleep time for when "tries" is 1 (the second try).
             time.sleep(retry_seconds[tries - 1])
-        response = requests.post(url=config_values['pf_token_url'],
+
+        response = requests.get(url=config_values['pf_token_url'],
                                  data=data)
         try:
             response_json = response.json()
