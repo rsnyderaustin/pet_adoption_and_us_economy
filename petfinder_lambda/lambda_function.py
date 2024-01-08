@@ -111,8 +111,7 @@ def lambda_handler(event, context):
 
         try:
             request_json_data = pf_manager.make_request(access_token=pf_access_token,
-                                                        petfinder_api_request=request,
-                                                        retry_seconds=config_values['pf_request_retry_seconds'])
+                                                        petfinder_api_request=request)
         except requests.exceptions.JSONDecodeError as e:
             continue
         except MaxPfDataRequestTriesError:

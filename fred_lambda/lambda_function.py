@@ -109,8 +109,7 @@ def lambda_handler(event, context):
                               value=observation_start_str)
         try:
             request_json_data = fred_manager.make_request(api_key=config_values['fred_api_key'],
-                                                          fred_api_request=request,
-                                                          retry_seconds=config_values['fred_retry_seconds'])
+                                                          fred_api_request=request)
         except MaxFredDataRequestTriesError:
             continue
 
