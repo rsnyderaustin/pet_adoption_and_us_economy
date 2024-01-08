@@ -28,17 +28,21 @@ def lambda_handler(event, context):
     raw_config_values = aws_variable_retriever.retrieve_parameter_value(parameter_name='configs',
                                                                         expect_json=True)
     config_values = json.loads(raw_config_values)
+    logger.info("Successfully retrieved and JSON parsed config values.")
 
     data = {
         'grant_type': 'client_credentials',
         'client_id': config_values['pf_api_key'],
         'client_secret': config_values['pf_secret_key']
     }
-    logger.info(f"Beginning Petfinder access token requests.")
+    logger.info(f"Beginning Petfinder access token request.")
     response = requests.post(url=config_values['pf_token_url'],
                              data=data)
-    response_json = response.json()
     response.raise_for_status()
+    logger.info("Petfinder API request successful.")
+
+    response_json = response.json()
     access_token = response_json['access_token']
+    logger.info("Successfully retrieved Petfinder API access token from API response.")
 
     return access_token
